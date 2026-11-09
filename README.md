@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Chronolab Calendar
 
-## Getting Started
+A personal calendar with a retro-sci-fi "lab" theme: nixie-tube digits, green CRT text, scanlines.
 
-First, run the development server:
+- **Import calendars:** subscribe to any `.ics` URL (one click for Malaysia public holidays) or upload an `.ics` file. Re-imports update existing events by UID and keep their reminders.
+- **Mark your own days:** one-off, multi-day, timed, or repeating every year (birthdays, anniversaries).
+- **Reminders:** per event, or calendar-wide (e.g. "every Malaysian holiday, 1 day before"), sent by **email (Gmail)** or **phone push (ntfy)**.
+
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+```bash
+cp .env.example .env.local   # then fill in email / ntfy settings
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm build && pnpm start      # web app on http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm worker                   # in a second terminal: sends reminders, syncs subscriptions daily
+```
 
-## Learn More
+Both processes share the SQLite file at `DATABASE_PATH` (default `./data/calendar.db`).
 
-To learn more about Next.js, take a look at the following resources:
+## Notification setup
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Gmail:** turn on 2-Step Verification, create an App Password at <https://myaccount.google.com/apppasswords>, and put it in `SMTP_PASS`. Set `SMTP_USER` and `MAIL_TO` to your address.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Phone push (ntfy):** install the free ntfy app (Android/iOS), subscribe to a long random topic name, and set `NTFY_URL=https://ntfy.sh/<that-topic>`. Anyone who knows the topic can read it, so keep the name hard to guess, or self-host ntfy.
 
-## Deploy on Vercel
+Use **Notifications → Send test** in the app to check each channel.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Theme note
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The look is an original design inspired by retro sci-fi lab aesthetics. It contains no characters, logos, artwork or text from any existing anime.

@@ -1,103 +1,166 @@
-import Image from "next/image";
+import Link from "next/link";
+import { getDb } from "@/db";
+import { Flash } from "@/components/flash";
+import { Nixie } from "@/components/nixie";
+import {
+  MONTH_NAMES,
+  addDays,
+  diffDays,
+  formatLong,
+  monthGrid,
+  parseYmd,
+  shiftMonth,
+  todayIn,
+} from "@/lib/dates";
+import { getOccurrences, groupByDay } from "@/lib/occurrences";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MAX_CHIPS = 3;
+
+type Search = Promise<{ m?: string; msg?: string; error?: string }>;
+
+export default async function MonthPage({ searchParams }: { searchParams: Search }) {
+  const sp = await searchParams;
+  const db = getDb();
+  const today = todayIn();
+  const t = parseYmd(today);
+  const match = /^(\d{4})-(\d{2})$/.exec(sp.m ?? "");
+  const year = match ? Number(match[1]) : t.y;
+  const month = match && Number(match[2]) >= 1 && Number(match[2]) <= 12 ? Number(match[2]) : t.m;
+
+  const grid = monthGrid(year, month);
+  const from = grid[0][0];
+  const to = grid[5][6];
+  const byDay = groupByDay(getOccurrences(db, from, to, { onlyVisible: true }), from, to);
+
+  const upcoming = getOccurrences(db, today, addDays(today, 60), { onlyVisible: true }).filter((o) => o.date >= today);
+  const nextHoliday = upcoming.find((o) => o.calendar.isHoliday);
+  const prev = shiftMonth(year, month, -1);
+  const next = shiftMonth(year, month, 1);
+  const mParam = (y: number, m: number) => `${y}-${String(m).padStart(2, "0")}`;
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <>
+      <Flash msg={sp.msg} error={sp.error} />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <section className="panel mb-6 flex flex-wrap items-center justify-between gap-6 px-5 py-4">
+        <div>
+          <div className="label mb-2">Current coordinate</div>
+          <Nixie value={today.replaceAll("-", ".")} label={`Today is ${formatLong(today)}`} />
+          <div className="mt-2 text-sm text-muted">{formatLong(today)}</div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        <div className="sm:text-right">
+          <div className="label mb-2">Next special day</div>
+          {nextHoliday ? (
+            <>
+              <Nixie
+                value={`D-${String(diffDays(today, nextHoliday.date)).padStart(2, "0")}`}
+                size="clamp(1.3rem, 5vw, 1.75rem)"
+                label={`${diffDays(today, nextHoliday.date)} days to go`}
+              />
+              <div className="mt-2 text-sm">
+                <Link href={`/events/${nextHoliday.event.id}`} className="amber hover:underline">
+                  {nextHoliday.event.title}
+                </Link>
+                <span className="text-muted"> · {formatLong(nextHoliday.date)}</span>
+              </div>
+            </>
+          ) : (
+            <div className="text-sm text-muted">
+              None in the next 60 days. <Link className="crt underline" href="/calendars">Import holidays →</Link>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_17rem]">
+        <section className="panel overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3">
+            <h1 className="text-xl">
+              <span className="amber">{MONTH_NAMES[month - 1]}</span> <span className="text-muted">{year}</span>
+            </h1>
+            <div className="flex gap-2">
+              <Link className="btn" href={`/?m=${mParam(prev.year, prev.month)}`} aria-label="Previous month">◀</Link>
+              <Link className="btn" href="/">Today</Link>
+              <Link className="btn" href={`/?m=${mParam(next.year, next.month)}`} aria-label="Next month">▶</Link>
+              <Link className="btn btn-primary" href={`/events/new?date=${year === t.y && month === t.m ? today : mParam(year, month) + "-01"}`}>
+                + Mark a day
+              </Link>
+            </div>
+          </div>
+
+          <div>
+            <div className="grid grid-cols-7">
+              {WEEKDAYS.map((d, i) => (
+                <div key={d} className={`label border-b border-line px-1 py-2 sm:px-2 ${i === 0 ? "text-nixie/80" : ""}`}>
+                  <span className="sm:hidden">{d[0]}</span>
+                  <span className="hidden sm:inline">{d}</span>
+                </div>
+              ))}
+              {grid.flat().map((day) => {
+                const items = byDay.get(day) ?? [];
+                const inMonth = parseYmd(day).m === month;
+                const isHoliday = items.some((o) => o.calendar.isHoliday);
+                return (
+                  <div
+                    key={day}
+                    className={`day-cell min-w-0 border-b border-r border-line/70 p-0.5 sm:p-1.5 ${inMonth ? "" : "opacity-35"} ${day === today ? "today" : ""} ${isHoliday ? "holiday" : ""}`}
+                  >
+                    <Link
+                      href={`/events/new?date=${day}`}
+                      className="day-num mb-1 inline-block rounded px-1 text-sm text-muted hover:text-phosphor"
+                      title={`Mark ${formatLong(day)}`}
+                    >
+                      {parseYmd(day).d}
+                    </Link>
+                    <div className="space-y-0.5">
+                      {items.slice(0, MAX_CHIPS).map((o) => (
+                        <Link
+                          key={`${o.event.id}-${o.date}`}
+                          href={`/events/${o.event.id}`}
+                          className="chip"
+                          style={{ "--chip": o.calendar.color } as React.CSSProperties}
+                          title={`${o.event.title} — ${o.calendar.name}`}
+                        >
+                          {o.event.startTime && o.date === day ? `${o.event.startTime} ` : ""}
+                          {o.event.title}
+                        </Link>
+                      ))}
+                      {items.length > MAX_CHIPS && <div className="px-1 text-[0.65rem] text-muted">+{items.length - MAX_CHIPS} more</div>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <aside className="panel h-fit p-4">
+          <div className="label mb-3">Upcoming · 60 days</div>
+          {upcoming.length === 0 ? (
+            <p className="text-sm text-muted">Nothing scheduled. Click any date to mark it.</p>
+          ) : (
+            <ol className="space-y-2.5">
+              {upcoming.slice(0, 12).map((o) => {
+                const d = diffDays(today, o.date);
+                return (
+                  <li key={`${o.event.id}-${o.date}`} className="flex gap-3 text-sm">
+                    <span className="w-12 shrink-0 text-right tabular-nums" style={{ color: o.calendar.color }}>
+                      {d === 0 ? "today" : `+${d}d`}
+                    </span>
+                    <Link href={`/events/${o.event.id}`} className="min-w-0 hover:text-phosphor">
+                      <span className="block truncate">{o.event.title}</span>
+                      <span className="block text-xs text-muted">{formatLong(o.date)}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </aside>
+      </div>
+    </>
   );
 }
