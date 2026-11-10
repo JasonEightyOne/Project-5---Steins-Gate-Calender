@@ -35,8 +35,13 @@ export function expandEvent(event: CalendarEvent, from: string, to: string): { d
 }
 
 /** All occurrences overlapping [from, to] (inclusive), sorted by date then time. */
-export function getOccurrences(db: Db, from: string, to: string, opts: { onlyVisible?: boolean } = {}): Occurrence[] {
-  const rows = db
+export async function getOccurrences(
+  db: Db,
+  from: string,
+  to: string,
+  opts: { onlyVisible?: boolean } = {},
+): Promise<Occurrence[]> {
+  const rows = await db
     .select({ event: events, calendar: calendars })
     .from(events)
     .innerJoin(calendars, eq(events.calendarId, calendars.id))

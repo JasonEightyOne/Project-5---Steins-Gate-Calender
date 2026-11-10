@@ -18,7 +18,7 @@ const STATUS_TEXT = { sent: "Sent", failed: "Failed", pending: "Sending" } as co
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ msg?: string; error?: string }> }) {
   const sp = await searchParams;
   const status = channelStatus();
-  const log = getDb().select().from(deliveries).orderBy(desc(deliveries.id)).limit(25).all();
+  const log = await (await getDb()).select().from(deliveries).orderBy(desc(deliveries.id)).limit(25).all();
   const fmt = (d: Date) => d.toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur", dateStyle: "medium", timeStyle: "short" });
 
   return (

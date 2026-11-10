@@ -14,9 +14,15 @@ Time zone: everything is in `APP_TIMEZONE` (default `Asia/Kuala_Lumpur`). Calend
 ## Stack
 - **Framework:** Next.js (App Router) + TypeScript (`strict: true`)
 - **Styling:** Tailwind CSS
-- **Database:** SQLite via Drizzle ORM + better-sqlite3. The schema is in `src/db/schema.ts`; tables are created by `BOOTSTRAP_SQL` in `src/db/index.ts`. Keep the two in sync and use `ALTER TABLE` for changes to existing DBs.
+- **Database:** libSQL (SQLite-compatible) via Drizzle ORM (`drizzle-orm/libsql`, `@libsql/client`).
+  - It uses Turso when `TURSO_DATABASE_URL` is set, which is required on Vercel. Otherwise it uses a local file at `DATABASE_PATH`.
+  - **All DB calls are async**: `await getDb()`, then `await …all()/get()/run()`.
+  - The schema is in `src/db/schema.ts`; tables are created by `BOOTSTRAP_SQL` in `src/db/index.ts`. Keep the two in sync and use `ALTER TABLE` for changes to existing DBs.
+  - Don't rely on `ON DELETE CASCADE`, because hosted libSQL may not enforce it. Delete child rows explicitly (see `removeCalendar` in `actions.ts`).
 - **ICS parsing:** node-ical. Date-only values come back as *process-local* midnight, so read them with local getters (see `src/lib/ics.ts`).
-- **Worker:** `scripts/worker.ts` (node-cron, run with tsx)
+- **Scheduling:** `runCronTick` (`src/lib/cron.ts`) sends due reminders and does the nightly sync.
+  - On Vercel, an external cron service calls `/api/cron` every minute with `Authorization: Bearer $CRON_SECRET`.
+  - When self-hosting, `scripts/worker.ts` (node-cron, run with tsx) calls the same function.
 - **Validation:** Zod
 - **Testing:** Vitest (unit), Playwright (end-to-end)
 - **Package manager:** pnpm
@@ -95,5 +101,5 @@ Next:
 2. Browser push notifications (service worker + VAPID).
 3. Telegram/WhatsApp channel; Google Calendar export (`.ics` feed of "My Days").
 4. Filter holidays by Malaysian state.
-5. Deploy: a small VPS or home server with the web app and the worker (SQLite needs a persistent disk, so not Vercel serverless as-is).
+5. Deploy: done for Vercel with Turso and cron-job.org (README "Deploy on Vercel"). Self-hosting with `pnpm worker` still works.
 6. Auth if it ever becomes multi-user.

@@ -26,6 +26,48 @@ pnpm worker                   # in a second terminal: sends reminders, syncs sub
 
 Both processes share the SQLite file at `DATABASE_PATH` (default `./data/calendar.db`).
 
+## Deploy on Vercel
+
+Vercel can't keep files on disk or run a background worker, so it needs two free services: **Turso** (a hosted SQLite database) and **cron-job.org** (a timer that triggers reminders).
+
+**1. Create the database.** Sign up at <https://turso.tech>, create a database (for example `chronolab`), then copy two values:
+- its **URL**, which starts with `libsql://`
+- an **auth token**: in the dashboard, use *Create token*
+
+With the Turso CLI it's:
+
+```bash
+turso db create chronolab
+```
+
+```bash
+turso db show chronolab --url
+```
+
+```bash
+turso db tokens create chronolab
+```
+
+The app creates its tables on first use.
+
+**2. Add environment variables in Vercel.** Go to Project → Settings → Environment Variables and add:
+
+| Name | Value |
+|---|---|
+| `TURSO_DATABASE_URL` | the `libsql://…` URL |
+| `TURSO_AUTH_TOKEN` | the token |
+| `CRON_SECRET` | a long random string (for example from `openssl rand -hex 24`) |
+| `NTFY_URL` and/or `SMTP_*`, `MAIL_TO` | your notification settings (see below) |
+
+Then redeploy: Deployments → ⋯ → Redeploy.
+
+**3. Turn on reminders.** At <https://cron-job.org>, create a free job:
+- **URL:** `https://<your-app>.vercel.app/api/cron`
+- **Schedule:** every minute
+- **Advanced → Headers:** `Authorization` = `Bearer <your CRON_SECRET>`
+
+Each call sends any reminders that are due. During 03:00–03:05 Malaysia time it also refreshes subscribed calendars. To refresh them right away, open `/api/cron?sync=1` with the same header.
+
 ## Notification setup
 
 **Gmail:** turn on 2-Step Verification, create an App Password at <https://myaccount.google.com/apppasswords>, and put it in `SMTP_PASS`. Set `SMTP_USER` and `MAIL_TO` to your address.

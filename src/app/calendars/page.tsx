@@ -20,10 +20,10 @@ const KIND = { local: "Your own days", ics_url: "Subscribed by link", ics_file: 
 
 export default async function CalendarsPage({ searchParams }: { searchParams: Promise<{ msg?: string; error?: string }> }) {
   const sp = await searchParams;
-  const db = getDb();
-  const cals = db.select().from(calendars).orderBy(asc(calendars.id)).all();
+  const db = await getDb();
+  const cals = await db.select().from(calendars).orderBy(asc(calendars.id)).all();
   const counts = new Map(
-    db.select({ id: events.calendarId, n: count() }).from(events).groupBy(events.calendarId).all().map((r) => [r.id, r.n]),
+    (await db.select({ id: events.calendarId, n: count() }).from(events).groupBy(events.calendarId).all()).map((r) => [r.id, r.n]),
   );
   const subscribed = new Set(cals.map((c) => c.sourceUrl));
   const fileCals = cals.filter((c) => c.kind === "ics_file");
