@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS deliveries (
   created_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
 INSERT INTO calendars (name, color, kind)
-  SELECT 'My Days', '#7dffa8', 'local'
+  SELECT 'My Days', '#244f8f', 'local'
   WHERE NOT EXISTS (SELECT 1 FROM calendars WHERE kind = 'local');
 `;
 
