@@ -1,7 +1,7 @@
 import type { Channel } from "@/db/schema";
 
 export const OFFSET_OPTIONS: { value: number; label: string }[] = [
-  { value: 0, label: "On the day / at start" },
+  { value: 0, label: "On the day" },
   { value: 60, label: "1 hour before" },
   { value: 1440, label: "1 day before" },
   { value: 2880, label: "2 days before" },
@@ -10,12 +10,12 @@ export const OFFSET_OPTIONS: { value: number; label: string }[] = [
   { value: 20160, label: "2 weeks before" },
 ];
 
-export const CHANNEL_LABELS: Record<Channel, string> = { email: "Email (Gmail)", ntfy: "Phone push (ntfy)" };
+export const CHANNEL_LABELS: Record<Channel, string> = { email: "by email", ntfy: "on my phone (ntfy)" };
 
 export function OffsetSelect({ name, defaultValue, allowNone }: { name: string; defaultValue?: number | null; allowNone?: boolean }) {
   return (
     <select name={name} className="field" defaultValue={defaultValue ?? (allowNone ? "" : 1440)}>
-      {allowNone && <option value="">No reminder</option>}
+      {allowNone && <option value="">Don&apos;t remind me</option>}
       {OFFSET_OPTIONS.map((o) => (
         <option key={o.value} value={o.value}>{o.label}</option>
       ))}

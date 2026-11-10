@@ -4,7 +4,7 @@ export const HOLIDAY_PRESETS = [
     id: "my-google",
     name: "Malaysia public holidays",
     url: "https://calendar.google.com/calendar/ical/en.malaysia%23holiday%40group.v.calendar.google.com/public/basic.ics",
-    note: "Google's public feed: national and state holidays plus observances. Refreshed daily by the worker.",
-    color: "#ff9a3c",
+    note: "Google's public feed of national and state holidays, plus observances. It updates every night.",
+    color: "#b3242e",
   },
 ] as const;

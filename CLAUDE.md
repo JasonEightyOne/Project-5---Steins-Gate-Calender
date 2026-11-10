@@ -7,7 +7,7 @@ Guidance for Claude Code (and humans) working in this repository.
 - Import calendars from `.ics` URLs (subscriptions, re-synced daily) or uploaded `.ics` files. Primary use: Malaysia public holidays.
 - Mark personal days (one-off, multi-day, timed, yearly).
 - Reminders per event or per calendar, delivered by email (Gmail SMTP) or ntfy phone push, sent by a background worker.
-- Retro-sci-fi "lab" theme (nixie tubes, CRT phosphor). **It must stay original: never use characters, logos, art, quotes or names from Steins;Gate or any other existing work.** Users may drop their own images into `public/theme/` for private use.
+- "Engineer's logbook" design: green graph paper, ink and red pencil, with a walnut instrument strip of nixie tubes. Spec: `docs/design-plan.md`. **It must stay original: never use characters, logos, art, quotes or names from Steins;Gate or any other existing work.** Users may drop their own images into `public/theme/` for private use.
 
 Time zone: everything is in `APP_TIMEZONE` (default `Asia/Kuala_Lumpur`). Calendar dates are `YYYY-MM-DD` strings. Never use `Date` for calendar days.
 
@@ -57,7 +57,12 @@ tests/
 
 ## Skills
 Project skills live in `.claude/skills/` and are committed, so they load in every session. Installed so far:
-- `frontend-design` (from `anthropics/skills`; see its `SOURCE.md`). Use it for UI and design work. Its advice never overrides this file. The theme must stay original, and the existing Chronolab look (nixie amber, CRT green) is the brief.
+- `frontend-design` (from `anthropics/skills`; see its `SOURCE.md`). Use it for UI and design work. Its advice never overrides this file, and the theme must stay original. `docs/design-plan.md` is the current brief and token system, so update it when the design changes.
+- Design rules from that plan:
+  - Only the instrument strip glows.
+  - Red means a public holiday, and blue means your own day.
+  - Labels are in sentence case.
+  - No middle-dot strings and no boxed cards.
 
 How to add more: `docs/adding-skills.md`.
 
