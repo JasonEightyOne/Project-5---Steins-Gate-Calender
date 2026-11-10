@@ -55,6 +55,12 @@ tests/
   fixtures/          # sample .ics
 ```
 
+## Skills
+Project skills live in `.claude/skills/` and are committed, so they load in every session. Installed so far:
+- `frontend-design` (from `anthropics/skills`; see its `SOURCE.md`). Use it for UI and design work. Its advice never overrides this file. The theme must stay original, and the existing Chronolab look (nixie amber, CRT green) is the brief.
+
+How to add more: `docs/adding-skills.md`.
+
 ## Conventions
 - Use Server Components by default. Add `"use client"` only when interactivity needs it.
 - Make data changes through **Server Actions**. Validate every input with a Zod schema.
