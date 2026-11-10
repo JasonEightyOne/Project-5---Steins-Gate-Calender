@@ -21,8 +21,8 @@ function capitalize(s: string) {
 
 export default async function EventPage({ params, searchParams }: Props) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
-  const db = getDb();
-  const row = db
+  const db = await getDb();
+  const row = await db
     .select({ event: events, calendar: calendars })
     .from(events)
     .innerJoin(calendars, eq(events.calendarId, calendars.id))
@@ -30,8 +30,9 @@ export default async function EventPage({ params, searchParams }: Props) {
     .get();
   if (!row) notFound();
   const { event, calendar } = row;
-  const list = db.select().from(reminders).where(eq(reminders.eventId, event.id)).orderBy(asc(reminders.minutesBefore)).all();
+  const list = await db.select().from(reminders).where(eq(reminders.eventId, event.id)).orderBy(asc(reminders.minutesBefore)).all();
   const editable = calendar.kind === "local";
+  const localCalendars = editable ? await db.select().from(calendars).where(eq(calendars.kind, "local")).all() : [];
   const status = channelStatus();
   const { y, m } = parseYmd(event.startDate);
 
@@ -95,7 +96,7 @@ export default async function EventPage({ params, searchParams }: Props) {
           <h2 id="edit" className="t-h3 mb-4">Edit this day</h2>
           <EventForm
             action={updateEvent.bind(null, event.id)}
-            calendars={db.select().from(calendars).where(eq(calendars.kind, "local")).all()}
+            calendars={localCalendars}
             event={event}
             submitLabel="Save changes"
           />

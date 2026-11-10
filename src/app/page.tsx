@@ -20,7 +20,7 @@ function shortDate(s: string) {
 
 export default async function MonthPage({ searchParams }: { searchParams: Search }) {
   const sp = await searchParams;
-  const db = getDb();
+  const db = await getDb();
   const today = todayIn();
   const t = parseYmd(today);
   const match = /^(\d{4})-(\d{2})$/.exec(sp.m ?? "");
@@ -30,8 +30,8 @@ export default async function MonthPage({ searchParams }: { searchParams: Search
   const grid = monthGrid(year, month);
   const from = grid[0][0];
   const to = grid[5][6];
-  const byDay = groupByDay(getOccurrences(db, from, to, { onlyVisible: true }), from, to);
-  const upcoming = getOccurrences(db, today, addDays(today, 60), { onlyVisible: true }).filter((o) => o.date >= today);
+  const byDay = groupByDay(await getOccurrences(db, from, to, { onlyVisible: true }), from, to);
+  const upcoming = (await getOccurrences(db, today, addDays(today, 60), { onlyVisible: true })).filter((o) => o.date >= today);
 
   const prev = shiftMonth(year, month, -1);
   const next = shiftMonth(year, month, 1);

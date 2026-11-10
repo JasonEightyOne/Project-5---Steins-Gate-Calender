@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";
@@ -28,10 +28,24 @@ function errorMessage(err: unknown) {
   return err instanceof Error ? err.message : String(err);
 }
 
-function assertLocalCalendar(calendarId: number) {
-  const cal = getDb().select().from(calendars).where(eq(calendars.id, calendarId)).get();
+async function assertLocalCalendar(calendarId: number) {
+  const cal = await (await getDb()).select().from(calendars).where(eq(calendars.id, calendarId)).get();
   if (!cal || cal.kind !== "local") throw new Error("Events can only be added to your own (non-imported) calendars");
   return cal;
+}
+
+/**
+ * Delete a calendar with its events and their reminders. The child rows are deleted explicitly
+ * because hosted libSQL may not enforce ON DELETE CASCADE.
+ */
+async function removeCalendar(calendarId: number) {
+  const db = await getDb();
+  await db.transaction(async (tx) => {
+    const ids = (await tx.select({ id: events.id }).from(events).where(eq(events.calendarId, calendarId)).all()).map((e) => e.id);
+    if (ids.length) await tx.delete(reminders).where(inArray(reminders.eventId, ids)).run();
+    await tx.delete(events).where(eq(events.calendarId, calendarId)).run();
+    await tx.delete(calendars).where(eq(calendars.id, calendarId)).run();
+  });
 }
 
 // ---------- events ----------
@@ -42,12 +56,12 @@ export async function createEvent(formData: FormData) {
   if (!parsed.success) back(`/events/new?date=${date}`, "error", firstError(parsed.error));
   const v = parsed.data;
   try {
-    assertLocalCalendar(v.calendarId);
+    await assertLocalCalendar(v.calendarId);
   } catch (err) {
     back(`/events/new?date=${date}`, "error", errorMessage(err));
   }
-  const db = getDb();
-  const ev = db
+  const db = await getDb();
+  const ev = await db
     .insert(events)
     .values({
       calendarId: v.calendarId,
@@ -61,7 +75,7 @@ export async function createEvent(formData: FormData) {
     .returning()
     .get();
   if (v.reminderMinutes != null && v.reminderChannel) {
-    db.insert(reminders).values({ eventId: ev.id, minutesBefore: v.reminderMinutes, channel: v.reminderChannel }).run();
+    await db.insert(reminders).values({ eventId: ev.id, minutesBefore: v.reminderMinutes, channel: v.reminderChannel }).run();
   }
   revalidatePath("/");
   redirect(`/?m=${v.startDate.slice(0, 7)}&msg=${encodeURIComponent(`Saved "${v.title}"`)}`);
@@ -71,16 +85,16 @@ export async function updateEvent(eventId: number, formData: FormData) {
   const parsed = eventSchema.safeParse(formToObject(formData));
   if (!parsed.success) back(`/events/${eventId}`, "error", firstError(parsed.error));
   const v = parsed.data;
-  const db = getDb();
-  const existing = db.select().from(events).where(eq(events.id, eventId)).get();
+  const db = await getDb();
+  const existing = await db.select().from(events).where(eq(events.id, eventId)).get();
   if (!existing) back("/", "error", "Event not found");
   try {
-    assertLocalCalendar(existing.calendarId);
-    assertLocalCalendar(v.calendarId);
+    await assertLocalCalendar(existing.calendarId);
+    await assertLocalCalendar(v.calendarId);
   } catch (err) {
     back(`/events/${eventId}`, "error", errorMessage(err));
   }
-  db.update(events)
+  await db.update(events)
     .set({
       calendarId: v.calendarId,
       title: v.title,
@@ -97,11 +111,12 @@ export async function updateEvent(eventId: number, formData: FormData) {
 }
 
 export async function deleteEvent(eventId: number) {
-  const db = getDb();
-  const ev = db.select().from(events).where(eq(events.id, eventId)).get();
+  const db = await getDb();
+  const ev = await db.select().from(events).where(eq(events.id, eventId)).get();
   if (ev) {
-    assertLocalCalendar(ev.calendarId);
-    db.delete(events).where(eq(events.id, eventId)).run();
+    await assertLocalCalendar(ev.calendarId);
+    await db.delete(reminders).where(eq(reminders.eventId, eventId)).run();
+    await db.delete(events).where(eq(events.id, eventId)).run();
   }
   revalidatePath("/");
   redirect(`/?m=${ev?.startDate.slice(0, 7) ?? ""}&msg=${encodeURIComponent("Day deleted")}`);
@@ -112,7 +127,7 @@ export async function deleteEvent(eventId: number) {
 export async function addReminder(eventId: number, formData: FormData) {
   const parsed = reminderSchema.safeParse(formToObject(formData));
   if (!parsed.success) back(`/events/${eventId}`, "error", firstError(parsed.error));
-  getDb()
+  await (await getDb())
     .insert(reminders)
     .values({ eventId, ...parsed.data })
     .onConflictDoNothing()
@@ -121,7 +136,7 @@ export async function addReminder(eventId: number, formData: FormData) {
 }
 
 export async function deleteReminder(reminderId: number, eventId: number) {
-  getDb()
+  await (await getDb())
     .delete(reminders)
     .where(and(eq(reminders.id, reminderId), eq(reminders.eventId, eventId)))
     .run();
@@ -134,7 +149,7 @@ export async function createLocalCalendar(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const color = colorField.safeParse(formData.get("color") || undefined);
   if (!name || !color.success) back("/calendars", "error", "Give the calendar a name.");
-  getDb().insert(calendars).values({ name, color: color.data, kind: "local" }).run();
+  await (await getDb()).insert(calendars).values({ name, color: color.data, kind: "local" }).run();
   revalidatePath("/");
   back("/calendars", "msg", `Created "${name}"`);
 }
@@ -143,8 +158,8 @@ export async function subscribeCalendar(formData: FormData) {
   const parsed = subscribeSchema.safeParse(formToObject(formData));
   if (!parsed.success) back("/calendars", "error", firstError(parsed.error));
   const v = parsed.data;
-  const db = getDb();
-  const cal = db
+  const db = await getDb();
+  const cal = await db
     .insert(calendars)
     .values({ name: v.name, color: v.color, kind: "ics_url", sourceUrl: v.url, isHoliday: v.isHoliday })
     .returning()
@@ -165,28 +180,29 @@ export async function uploadIcs(formData: FormData) {
   if (!(file instanceof File) || file.size === 0) back("/calendars", "error", "Choose an .ics file to import.");
   if (file.size > MAX_ICS_BYTES) back("/calendars", "error", "That file is over 5 MB. Choose a smaller .ics file.");
 
-  const db = getDb();
+  const db = await getDb();
   const target = Number(formData.get("targetId") || 0);
   let calendarId = target;
   if (!target) {
     const name = String(formData.get("name") ?? "").trim() || file.name.replace(/\.ics$/i, "");
     const color = colorField.safeParse(formData.get("color") || undefined);
-    calendarId = db
+    const created = await db
       .insert(calendars)
-      .values({ name, color: color.success ? color.data : "#ff8a2a", kind: "ics_file", isHoliday: formData.get("isHoliday") === "on" })
+      .values({ name, color: color.success ? color.data : "#b3242e", kind: "ics_file", isHoliday: formData.get("isHoliday") === "on" })
       .returning()
-      .get().id;
+      .get();
+    calendarId = created.id;
   } else {
-    const cal = db.select().from(calendars).where(eq(calendars.id, target)).get();
+    const cal = await db.select().from(calendars).where(eq(calendars.id, target)).get();
     if (!cal || cal.kind !== "ics_file") back("/calendars", "error", "Choose a calendar that was imported from a file.");
   }
 
   let summary = "";
   try {
-    const r = importIcsText(db, calendarId, await file.text());
+    const r = await importIcsText(db, calendarId, await file.text());
     summary = `Imported ${r.total} events: ${r.added} new, ${r.updated} updated, ${r.removed} removed.`;
   } catch (err) {
-    if (!target) db.delete(calendars).where(eq(calendars.id, calendarId)).run();
+    if (!target) await removeCalendar(calendarId);
     back("/calendars", "error", `Couldn't import that file: ${errorMessage(err)}`);
   }
   revalidatePath("/");
@@ -196,7 +212,7 @@ export async function uploadIcs(formData: FormData) {
 export async function refreshCalendar(calendarId: number) {
   let summary = "";
   try {
-    const r = await syncCalendarFromUrl(getDb(), calendarId);
+    const r = await syncCalendarFromUrl(await getDb(), calendarId);
     summary = `Synced: ${r.added} new, ${r.updated} updated, ${r.removed} removed.`;
   } catch (err) {
     back("/calendars", "error", `Sync failed: ${errorMessage(err)}. Check the link and your connection, then try again.`);
@@ -206,9 +222,9 @@ export async function refreshCalendar(calendarId: number) {
 }
 
 export async function toggleCalendarVisible(calendarId: number) {
-  const db = getDb();
-  const cal = db.select().from(calendars).where(eq(calendars.id, calendarId)).get();
-  if (cal) db.update(calendars).set({ visible: !cal.visible }).where(eq(calendars.id, calendarId)).run();
+  const db = await getDb();
+  const cal = await db.select().from(calendars).where(eq(calendars.id, calendarId)).get();
+  if (cal) await db.update(calendars).set({ visible: !cal.visible }).where(eq(calendars.id, calendarId)).run();
   revalidatePath("/");
   redirect("/calendars");
 }
@@ -218,7 +234,7 @@ export async function setCalendarDefaults(calendarId: number, formData: FormData
   if (!parsed.success) back("/calendars", "error", firstError(parsed.error));
   const { defaultReminderMinutes, defaultReminderChannel } = parsed.data;
   const on = defaultReminderMinutes != null && defaultReminderChannel != null;
-  getDb()
+  await (await getDb())
     .update(calendars)
     .set({
       defaultReminderMinutes: on ? defaultReminderMinutes : null,
@@ -230,11 +246,11 @@ export async function setCalendarDefaults(calendarId: number, formData: FormData
 }
 
 export async function deleteCalendar(calendarId: number) {
-  const db = getDb();
-  const cal = db.select().from(calendars).where(eq(calendars.id, calendarId)).get();
-  const localCount = db.select().from(calendars).where(eq(calendars.kind, "local")).all().length;
+  const db = await getDb();
+  const cal = await db.select().from(calendars).where(eq(calendars.id, calendarId)).get();
+  const localCount = (await db.select().from(calendars).where(eq(calendars.kind, "local")).all()).length;
   if (cal?.kind === "local" && localCount <= 1) back("/calendars", "error", "You need at least one personal calendar, so this one can't be deleted.");
-  db.delete(calendars).where(eq(calendars.id, calendarId)).run();
+  await removeCalendar(calendarId);
   revalidatePath("/");
   back("/calendars", "msg", `Deleted "${cal?.name ?? "calendar"}"`);
 }

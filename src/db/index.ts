@@ -1,5 +1,5 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 import fs from "node:fs";
 import path from "node:path";
 import * as schema from "./schema";
@@ -54,23 +54,45 @@ INSERT INTO calendars (name, color, kind)
   WHERE NOT EXISTS (SELECT 1 FROM calendars WHERE kind = 'local');
 `;
 
-export function createDb(file: string) {
-  if (file !== ":memory:") fs.mkdirSync(path.dirname(file), { recursive: true });
-  const sqlite = new Database(file);
-  sqlite.pragma("journal_mode = WAL");
-  sqlite.pragma("foreign_keys = ON");
-  sqlite.exec(BOOTSTRAP_SQL);
-  return drizzle(sqlite, { schema });
+type DbOptions = { url: string; authToken?: string };
+
+/**
+ * Open a libSQL database (a local `file:` path, `:memory:`, or a hosted Turso `libsql://` URL)
+ * and make sure the tables exist.
+ */
+export async function createDb({ url, authToken }: DbOptions) {
+  if (url.startsWith("file:")) {
+    fs.mkdirSync(path.dirname(path.resolve(url.slice("file:".length))), { recursive: true });
+  }
+  const client = createClient({ url, authToken });
+  await client.executeMultiple(`PRAGMA foreign_keys = ON;\n${BOOTSTRAP_SQL}`);
+  return drizzle(client, { schema });
 }
 
-export type Db = ReturnType<typeof createDb>;
+export type Db = Awaited<ReturnType<typeof createDb>>;
 
-const globalForDb = globalThis as unknown as { __db?: Db };
+/** Where data lives: Turso when TURSO_DATABASE_URL is set (e.g. on Vercel), otherwise a local file. */
+export function dbOptionsFromEnv(): DbOptions {
+  if (process.env.TURSO_DATABASE_URL) {
+    return { url: process.env.TURSO_DATABASE_URL, authToken: process.env.TURSO_AUTH_TOKEN };
+  }
+  if (process.env.VERCEL) {
+    throw new Error(
+      "TURSO_DATABASE_URL is not set. Vercel cannot store a local database file; add TURSO_DATABASE_URL and TURSO_AUTH_TOKEN in Vercel → Settings → Environment Variables.",
+    );
+  }
+  return { url: `file:${process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "calendar.db")}` };
+}
 
-/** Shared connection (reused across hot reloads in dev). */
-export function getDb(): Db {
+const globalForDb = globalThis as unknown as { __db?: Promise<Db> };
+
+/** Shared connection, opened once per server process (and reused across hot reloads in dev). */
+export function getDb(): Promise<Db> {
   if (!globalForDb.__db) {
-    globalForDb.__db = createDb(process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "calendar.db"));
+    globalForDb.__db = createDb(dbOptionsFromEnv()).catch((err) => {
+      globalForDb.__db = undefined; // let the next request retry instead of caching the failure
+      throw err;
+    });
   }
   return globalForDb.__db;
 }

@@ -13,7 +13,7 @@ export default async function NewEventPage({ searchParams }: { searchParams: Pro
   const sp = await searchParams;
   const date = sp.date && isValidYmd(sp.date) ? sp.date : todayIn();
   const { y, m } = parseYmd(date);
-  const local = getDb().select().from(calendars).where(eq(calendars.kind, "local")).all();
+  const local = await (await getDb()).select().from(calendars).where(eq(calendars.kind, "local")).all();
   return (
     <div className="readable">
       <Link href={`/?m=${date.slice(0, 7)}`} className="t-small">Back to {MONTH_NAMES[m - 1]} {y}</Link>

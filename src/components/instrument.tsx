@@ -6,9 +6,9 @@ import { Nixie } from "./nixie";
 import { NavLinks } from "./nav-links";
 
 /** The walnut instrument strip: brand, navigation, and the glowing readout (today + next holiday). */
-export function Instrument() {
+export async function Instrument() {
   const today = todayIn();
-  const next = getOccurrences(getDb(), today, addDays(today, 365), { onlyVisible: true }).find(
+  const next = (await getOccurrences(await getDb(), today, addDays(today, 365), { onlyVisible: true })).find(
     (o) => o.calendar.isHoliday && o.date >= today,
   );
   const days = next ? diffDays(today, next.date) : null;
