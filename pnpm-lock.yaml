@@ -8,6 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@fontsource/b612':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/b612-mono':
+        specifier: ^5.3.0
+        version: 5.3.0
       better-sqlite3:
         specifier: ^13.0.3
         version: 13.0.3
@@ -586,6 +592,12 @@ packages:
   '@eslint/plugin-kit@0.4.1':
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@fontsource/b612-mono@5.3.0':
+    resolution: {integrity: sha512-G0Ihm+ekqqP5PZJ1zrx6GbeS2q4GDmYnM01zrNrPARRg64GoG0D2pTf+FsbDWvbg/9tVWFRmFIz8xYLjgFrUpg==}
+
+  '@fontsource/b612@5.3.0':
+    resolution: {integrity: sha512-2AQPrSFDI9K00w/lPlgfcqve+ZPdRSCttvVUxcmv+UrnwwaKLMym+/uXmM7+dgPCVBIV9omoXUabFoyBFpc1Vg==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -3008,6 +3020,10 @@ snapshots:
     dependencies:
       '@eslint/core': 0.17.0
       levn: 0.4.1
+
+  '@fontsource/b612-mono@5.3.0': {}
+
+  '@fontsource/b612@5.3.0': {}
 
   '@humanfs/core@0.19.2':
     dependencies:

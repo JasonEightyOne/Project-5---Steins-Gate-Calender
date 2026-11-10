@@ -1,6 +1,6 @@
 # Chronolab Calendar
 
-A personal calendar with a retro-sci-fi "lab" theme: nixie-tube digits, green CRT text, scanlines.
+A personal calendar designed like an engineer's logbook: green graph paper, ink and red pencil, with a strip of glowing nixie tubes showing today's date and the days until the next holiday. See `docs/design-plan.md`.
 
 - **Import calendars:** subscribe to any `.ics` URL (one click for Malaysia public holidays) or upload an `.ics` file. Re-imports update existing events by UID and keep their reminders.
 - **Mark your own days:** one-off, multi-day, timed, or repeating every year (birthdays, anniversaries).
@@ -36,4 +36,4 @@ Use **Notifications → Send test** in the app to check each channel.
 
 ## Theme note
 
-The look is an original design inspired by retro sci-fi lab aesthetics. It contains no characters, logos, artwork or text from any existing anime.
+The look is an original design inspired by retro sci-fi lab aesthetics, made with the `frontend-design` skill (see `docs/adding-skills.md`). It contains no characters, logos, artwork or text from any existing anime.

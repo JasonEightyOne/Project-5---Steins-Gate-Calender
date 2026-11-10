@@ -1,155 +1,194 @@
 @import "tailwindcss";
 
 /*
- * Chronolab theme — an original retro-sci-fi "lab" aesthetic:
- * nixie-tube amber digits, green CRT phosphor text, copper-trimmed panels, faint scanlines.
+ * Chronolab — "engineer's logbook" design (see docs/design-plan.md).
+ * Paper and ink everywhere; only the walnut instrument strip glows.
+ * Red = public holiday. Blue = your own days. Nothing is coloured for decoration.
  */
 :root {
-  color-scheme: dark;
-  --bg: #08090a;
-  --bg-grid: rgba(125, 255, 168, 0.035);
-  --panel: #101413;
-  --panel-2: #151b19;
-  --line: #26302c;
-  --copper: #8a5a32;
-  --phosphor: #7dffa8;
-  --phosphor-dim: #4c9e6a;
-  --text: #d6e6dc;
-  --muted: #7d8e85;
+  color-scheme: light;
+  --pad: #e6ecd6;
+  --pad-raised: #eef2e2;
+  --grid: #c3cea9;
+  --grid-fine: rgba(120, 140, 90, 0.16);
+  --ink: #1c2230;
+  --pencil: #565d4c;
+  --faint: #646b5a;
+  --holiday: #b3242e;
+  --own: #244f8f;
+  --walnut: #1a140f;
+  --walnut-edge: #3a2d20;
+  --housing-text: #cdbfa8;
   --nixie: #ff9a3c;
-  --nixie-core: #ffd9a8;
-  --nixie-glow: rgba(255, 122, 26, 0.65);
-  --danger: #ff5d5d;
-  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  --nixie-core: #ffe2bd;
+  --nixie-glow: rgba(255, 122, 26, 0.6);
+  --font-ui: "B612", system-ui, sans-serif;
+  --font-readout: "B612 Mono", ui-monospace, monospace;
 }
 
 @theme inline {
-  --color-bg: var(--bg);
-  --color-panel: var(--panel);
-  --color-panel-2: var(--panel-2);
-  --color-line: var(--line);
-  --color-copper: var(--copper);
-  --color-phosphor: var(--phosphor);
-  --color-phosphor-dim: var(--phosphor-dim);
-  --color-text: var(--text);
-  --color-muted: var(--muted);
+  --color-pad: var(--pad);
+  --color-pad-raised: var(--pad-raised);
+  --color-grid: var(--grid);
+  --color-ink: var(--ink);
+  --color-pencil: var(--pencil);
+  --color-faint: var(--faint);
+  --color-holiday: var(--holiday);
+  --color-own: var(--own);
+  --color-walnut: var(--walnut);
+  --color-housing: var(--housing-text);
   --color-nixie: var(--nixie);
-  --color-danger: var(--danger);
-  --font-mono: var(--font-mono);
-  --font-sans: var(--font-mono);
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-readout);
 }
 
-html { background: var(--bg); }
+html { background: var(--pad); }
 
 body {
   min-height: 100vh;
-  color: var(--text);
-  font-family: var(--font-mono);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  line-height: 1.5;
+  /* 5 mm engineering grid */
   background:
-    radial-gradient(ellipse at top, rgba(255, 140, 50, 0.07), transparent 55%),
-    linear-gradient(var(--bg-grid) 1px, transparent 1px) 0 0 / 28px 28px,
-    linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px) 0 0 / 28px 28px,
-    var(--bg);
+    linear-gradient(var(--grid-fine) 1px, transparent 1px) 0 0 / 20px 20px,
+    linear-gradient(90deg, var(--grid-fine) 1px, transparent 1px) 0 0 / 20px 20px,
+    var(--pad);
 }
 
-/* CRT scanlines + vignette over everything, never blocking clicks */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 50;
+/* ---------- Type scale (≈1.25) ---------- */
+.t-small { font-size: 0.8rem; line-height: 1.4; }
+.t-h3 { font-size: 1.25rem; line-height: 1.3; font-weight: 700; }
+.t-h2 { font-size: 1.56rem; line-height: 1.2; font-weight: 700; }
+.t-h1 { font-size: clamp(1.8rem, 6vw, 2.44rem); line-height: 1.05; font-weight: 700; letter-spacing: -0.01em; }
+
+.readable { max-width: 70ch; }
+
+/* ---------- Instrument housing: the only thing that glows ---------- */
+.housing {
   background:
-    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 3px),
-    radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.55));
-  mix-blend-mode: multiply;
+    radial-gradient(ellipse at 30% 0%, rgba(255, 150, 60, 0.12), transparent 60%),
+    linear-gradient(180deg, #221a13, var(--walnut));
+  border-bottom: 3px solid var(--walnut-edge);
+  color: var(--housing-text);
 }
+.housing a { color: var(--housing-text); }
+.housing a:hover, .housing a[aria-current="page"] { color: var(--nixie-core); }
+.housing a[aria-current="page"] { text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 1px; }
 
-.crt { color: var(--phosphor); text-shadow: 0 0 6px rgba(125, 255, 168, 0.45); }
-.amber { color: var(--nixie); text-shadow: 0 0 8px var(--nixie-glow); }
-
-.panel {
-  background: linear-gradient(180deg, var(--panel-2), var(--panel));
-  border: 1px solid var(--line);
-  border-top-color: color-mix(in srgb, var(--copper) 60%, var(--line));
-  border-radius: 10px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 10px 30px rgba(0, 0, 0, 0.35);
-}
-
-.label { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
-
-/* ---- Nixie tubes ---- */
-.nixie-row { display: inline-flex; gap: 4px; align-items: flex-end; }
+.nixie-row { display: inline-flex; gap: 0.12em; align-items: flex-end; font-family: var(--font-readout); }
 .nixie-tube {
-  position: relative;
   display: inline-grid;
   place-items: center;
-  width: 1.05em;
-  height: 1.55em;
-  border-radius: 0.5em 0.5em 0.18em 0.18em;
+  width: 0.98em;
+  height: 1.5em;
+  border-radius: 0.48em 0.48em 0.14em 0.14em;
   background:
-    radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.07), transparent 60%),
-    repeating-radial-gradient(circle at 50% 50%, rgba(255, 170, 90, 0.07) 0 1px, transparent 1px 3px),
-    linear-gradient(180deg, #1b1512, #0b0807);
-  border: 1px solid #3a2a20;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.6);
+    radial-gradient(circle at 50% 28%, rgba(255, 255, 255, 0.06), transparent 60%),
+    repeating-linear-gradient(60deg, rgba(255, 170, 90, 0.06) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(-60deg, rgba(255, 170, 90, 0.06) 0 1px, transparent 1px 4px),
+    linear-gradient(180deg, #19120d, #070504);
+  border: 1px solid #45331f;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.9);
   color: var(--nixie-core);
-  text-shadow: 0 0 2px #fff3e0, 0 0 6px var(--nixie), 0 0 14px var(--nixie-glow), 0 0 26px var(--nixie-glow);
-  font-weight: 300;
+  text-shadow: 0 0 2px #fff4e3, 0 0 6px var(--nixie), 0 0 14px var(--nixie-glow), 0 0 28px var(--nixie-glow);
   line-height: 1;
-  animation: flicker 7s infinite;
+  /* The single orchestrated moment: tubes ignite left to right on page load. */
+  animation: ignite 0.4s steps(1, end) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
 }
-.nixie-tube.dot { width: 0.45em; background: none; border: none; box-shadow: none; }
-.nixie-tube.off { color: rgba(255, 154, 60, 0.12); text-shadow: none; animation: none; }
-.nixie-tube:nth-child(3n) { animation-delay: -2.3s; }
-.nixie-tube:nth-child(4n) { animation-delay: -4.1s; }
+.nixie-tube.dot { width: 0.4em; background: none; border: none; box-shadow: none; }
 
-@keyframes flicker {
-  0%, 96%, 100% { opacity: 1; }
-  97% { opacity: 0.82; }
-  98% { opacity: 0.95; }
+@keyframes ignite {
+  0% { color: rgba(255, 154, 60, 0.1); text-shadow: none; }
+  40% { color: var(--nixie-core); text-shadow: 0 0 6px var(--nixie); }
+  55% { color: rgba(255, 154, 60, 0.3); text-shadow: none; }
+  100% { color: var(--nixie-core); }
 }
 
-/* ---- Controls ---- */
+/* ---------- Paper controls ---------- */
 .btn {
-  display: inline-flex; align-items: center; gap: 0.4rem;
-  padding: 0.45rem 0.8rem; border-radius: 6px;
-  border: 1px solid var(--line); background: var(--panel-2); color: var(--text);
-  font-size: 0.85rem; cursor: pointer; transition: border-color .15s, box-shadow .15s, color .15s;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 2.5rem; padding: 0.4rem 0.9rem;
+  border: 1.5px solid var(--ink); border-radius: 3px;
+  background: transparent; color: var(--ink);
+  font: inherit; font-size: 0.9rem; cursor: pointer;
 }
-.btn:hover { border-color: var(--phosphor-dim); color: var(--phosphor); box-shadow: 0 0 12px rgba(125, 255, 168, 0.15); }
-.btn-primary { border-color: var(--copper); color: var(--nixie); }
-.btn-primary:hover { border-color: var(--nixie); color: var(--nixie-core); box-shadow: 0 0 14px var(--nixie-glow); }
-.btn-danger:hover { border-color: var(--danger); color: var(--danger); box-shadow: none; }
+.btn:hover { background: rgba(28, 34, 48, 0.07); }
+.btn-ink { background: var(--ink); color: var(--pad); }
+.btn-ink:hover { background: #2c3446; }
+.btn-quiet { border-color: transparent; text-decoration: underline; text-underline-offset: 3px; padding-inline: 0.4rem; }
+.btn-quiet:hover { background: none; color: var(--own); }
+.btn-danger { border-color: var(--holiday); color: var(--holiday); }
+.btn-danger:hover { background: rgba(179, 36, 46, 0.08); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .field {
-  width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px;
-  background: #0a0d0c; border: 1px solid var(--line); color: var(--phosphor);
-  font-family: var(--font-mono); font-size: 0.9rem;
+  width: 100%; min-height: 2.5rem; padding: 0.45rem 0.6rem;
+  background: var(--pad-raised); color: var(--ink);
+  border: 1px solid #9faa86; border-radius: 3px;
+  font: inherit; font-size: 0.95rem;
 }
-.field:focus { outline: none; border-color: var(--phosphor-dim); box-shadow: 0 0 0 3px rgba(125, 255, 168, 0.12); }
-.field::file-selector-button { margin-right: .6rem; padding: .3rem .6rem; border-radius: 4px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); }
-select.field { color: var(--text); }
+.field:hover { border-color: var(--pencil); }
+.field::file-selector-button { margin-right: 0.6rem; padding: 0.3rem 0.6rem; border: 1.5px solid var(--ink); border-radius: 3px; background: transparent; color: var(--ink); font: inherit; }
 
-a:focus-visible, button:focus-visible { outline: 2px solid var(--phosphor); outline-offset: 2px; }
+.field-label { display: block; margin-bottom: 0.3rem; font-size: 0.85rem; color: var(--pencil); }
 
-/* ---- Calendar grid ---- */
-.day-cell { min-height: 6.5rem; }
-@media (max-width: 639px) {
-  .day-cell { min-height: 3.6rem; }
-  /* On phones, events collapse to colored bars; the Upcoming list carries the detail. */
-  .chip { height: 4px; padding: 0; font-size: 0; color: transparent; border-left: 0; background: var(--chip, var(--phosphor)); box-shadow: 0 0 6px var(--chip, var(--phosphor)); }
+a { color: var(--own); text-underline-offset: 3px; }
+:focus-visible { outline: 2.5px solid var(--own); outline-offset: 2px; }
+.housing :focus-visible { outline-color: var(--nixie); }
+
+/* Section rule: a pencil line across the page, used to separate form sections */
+.rule { border-top: 1.5px solid var(--grid); }
+
+/* ---------- Month grid ---------- */
+.month { border-top: 1.5px solid var(--ink); border-left: 1px solid var(--grid); }
+.month > * { border-right: 1px solid var(--grid); border-bottom: 1px solid var(--grid); }
+.day-cell { min-height: 6.75rem; background: rgba(238, 242, 226, 0.55); }
+.day-cell.outside { background: transparent; }
+.day-cell.outside .day-num { color: var(--faint); }
+.day-num {
+  display: inline-grid; place-items: center;
+  min-width: 1.9rem; height: 1.9rem; padding: 0 0.2rem;
+  color: var(--ink); text-decoration: none; font-size: 0.95rem;
 }
-.day-cell.today { box-shadow: inset 0 0 0 1px var(--phosphor-dim), inset 0 0 18px rgba(125, 255, 168, 0.12); }
-.day-cell.holiday .day-num { color: var(--nixie); text-shadow: 0 0 8px var(--nixie-glow); }
-.chip {
+.day-num:hover { color: var(--own); text-decoration: underline; }
+.day-cell.holiday .day-num { color: var(--holiday); font-weight: 700; }
+/* Today: circled by pen */
+.day-cell.today .day-num {
+  border: 2px solid var(--own);
+  border-radius: 50% 48% 52% 46% / 46% 52% 48% 54%;
+  transform: rotate(-4deg);
+}
+
+.entry {
   display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
-  font-size: 0.7rem; line-height: 1.25; padding: 1px 5px; border-radius: 3px;
-  border-left: 2px solid var(--chip, var(--phosphor));
-  background: color-mix(in srgb, var(--chip, var(--phosphor)) 13%, transparent);
-  color: color-mix(in srgb, var(--chip, var(--phosphor)) 70%, white);
+  font-size: 0.75rem; line-height: 1.35; padding: 1px 2px 1px 7px;
+  color: color-mix(in srgb, var(--entry, var(--own)) 70%, var(--ink));
+  text-decoration: none; position: relative;
 }
-.chip:hover { background: color-mix(in srgb, var(--chip, var(--phosphor)) 25%, transparent); }
+.entry::before {
+  content: ""; position: absolute; left: 1px; top: 0.45em; width: 3px; height: 0.65em;
+  background: var(--entry, var(--own)); border-radius: 1px;
+}
+.entry.is-holiday { color: var(--holiday); font-weight: 700; }
+.entry.is-holiday::before { background: var(--holiday); }
+.entry:hover { text-decoration: underline; }
+
+/* ---------- Notebook margin list ---------- */
+.margin-list > li { display: grid; grid-template-columns: 4.6rem 1fr; }
+.margin-list .when { padding-right: 0.6rem; border-right: 1.5px solid rgba(179, 36, 46, 0.55); text-align: right; font-size: 0.8rem; color: var(--pencil); }
+.margin-list .what { padding-left: 0.7rem; min-width: 0; }
+
+@media (max-width: 639px) {
+  .day-cell { min-height: 3.75rem; }
+  .day-num { min-width: 1.6rem; height: 1.6rem; font-size: 0.85rem; }
+  /* Phones: entries collapse to ink marks; "Coming up" carries the detail. */
+  .entry { height: 4px; padding: 0; margin: 2px 3px; font-size: 0; color: transparent; background: var(--entry, var(--own)); border-radius: 1px; }
+  .entry::before { display: none; }
+  .entry.is-holiday { background: var(--holiday); }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .nixie-tube { animation: none; }

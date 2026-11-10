@@ -64,7 +64,7 @@ export async function createEvent(formData: FormData) {
     db.insert(reminders).values({ eventId: ev.id, minutesBefore: v.reminderMinutes, channel: v.reminderChannel }).run();
   }
   revalidatePath("/");
-  redirect(`/?m=${v.startDate.slice(0, 7)}&msg=${encodeURIComponent(`Marked "${v.title}"`)}`);
+  redirect(`/?m=${v.startDate.slice(0, 7)}&msg=${encodeURIComponent(`Saved "${v.title}"`)}`);
 }
 
 export async function updateEvent(eventId: number, formData: FormData) {
@@ -93,7 +93,7 @@ export async function updateEvent(eventId: number, formData: FormData) {
     .where(eq(events.id, eventId))
     .run();
   revalidatePath("/");
-  back(`/events/${eventId}`, "msg", "Saved");
+  back(`/events/${eventId}`, "msg", "Changes saved");
 }
 
 export async function deleteEvent(eventId: number) {
@@ -104,7 +104,7 @@ export async function deleteEvent(eventId: number) {
     db.delete(events).where(eq(events.id, eventId)).run();
   }
   revalidatePath("/");
-  redirect(`/?m=${ev?.startDate.slice(0, 7) ?? ""}&msg=${encodeURIComponent("Event deleted")}`);
+  redirect(`/?m=${ev?.startDate.slice(0, 7) ?? ""}&msg=${encodeURIComponent("Day deleted")}`);
 }
 
 // ---------- reminders ----------
@@ -117,7 +117,7 @@ export async function addReminder(eventId: number, formData: FormData) {
     .values({ eventId, ...parsed.data })
     .onConflictDoNothing()
     .run();
-  back(`/events/${eventId}`, "msg", "Reminder set");
+  back(`/events/${eventId}`, "msg", "Reminder added");
 }
 
 export async function deleteReminder(reminderId: number, eventId: number) {
@@ -133,7 +133,7 @@ export async function deleteReminder(reminderId: number, eventId: number) {
 export async function createLocalCalendar(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const color = colorField.safeParse(formData.get("color") || undefined);
-  if (!name || !color.success) back("/calendars", "error", "Enter a name and color");
+  if (!name || !color.success) back("/calendars", "error", "Give the calendar a name.");
   getDb().insert(calendars).values({ name, color: color.data, kind: "local" }).run();
   revalidatePath("/");
   back("/calendars", "msg", `Created "${name}"`);
@@ -152,9 +152,9 @@ export async function subscribeCalendar(formData: FormData) {
   let summary = "";
   try {
     const r = await syncCalendarFromUrl(db, cal.id);
-    summary = `Subscribed: ${r.total} events imported`;
+    summary = `Subscribed. Added ${r.total} events.`;
   } catch (err) {
-    back("/calendars", "error", `Saved, but the first sync failed: ${errorMessage(err)}`);
+    back("/calendars", "error", `The calendar was saved, but downloading it failed: ${errorMessage(err)}. Check the link, then select Sync now.`);
   }
   revalidatePath("/");
   back("/calendars", "msg", summary);
@@ -162,8 +162,8 @@ export async function subscribeCalendar(formData: FormData) {
 
 export async function uploadIcs(formData: FormData) {
   const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) back("/calendars", "error", "Choose an .ics file");
-  if (file.size > MAX_ICS_BYTES) back("/calendars", "error", "File is larger than 5 MB");
+  if (!(file instanceof File) || file.size === 0) back("/calendars", "error", "Choose an .ics file to import.");
+  if (file.size > MAX_ICS_BYTES) back("/calendars", "error", "That file is over 5 MB. Choose a smaller .ics file.");
 
   const db = getDb();
   const target = Number(formData.get("targetId") || 0);
@@ -178,16 +178,16 @@ export async function uploadIcs(formData: FormData) {
       .get().id;
   } else {
     const cal = db.select().from(calendars).where(eq(calendars.id, target)).get();
-    if (!cal || cal.kind !== "ics_file") back("/calendars", "error", "Pick an imported-file calendar to update");
+    if (!cal || cal.kind !== "ics_file") back("/calendars", "error", "Choose a calendar that was imported from a file.");
   }
 
   let summary = "";
   try {
     const r = importIcsText(db, calendarId, await file.text());
-    summary = `Imported ${r.total} events (${r.added} new, ${r.updated} updated, ${r.removed} removed)`;
+    summary = `Imported ${r.total} events: ${r.added} new, ${r.updated} updated, ${r.removed} removed.`;
   } catch (err) {
     if (!target) db.delete(calendars).where(eq(calendars.id, calendarId)).run();
-    back("/calendars", "error", `Import failed: ${errorMessage(err)}`);
+    back("/calendars", "error", `Couldn't import that file: ${errorMessage(err)}`);
   }
   revalidatePath("/");
   back("/calendars", "msg", summary);
@@ -197,9 +197,9 @@ export async function refreshCalendar(calendarId: number) {
   let summary = "";
   try {
     const r = await syncCalendarFromUrl(getDb(), calendarId);
-    summary = `Synced: ${r.added} new, ${r.updated} updated, ${r.removed} removed`;
+    summary = `Synced: ${r.added} new, ${r.updated} updated, ${r.removed} removed.`;
   } catch (err) {
-    back("/calendars", "error", `Sync failed: ${errorMessage(err)}`);
+    back("/calendars", "error", `Sync failed: ${errorMessage(err)}. Check the link and your connection, then try again.`);
   }
   revalidatePath("/");
   back("/calendars", "msg", summary);
@@ -226,14 +226,14 @@ export async function setCalendarDefaults(calendarId: number, formData: FormData
     })
     .where(eq(calendars.id, calendarId))
     .run();
-  back("/calendars", "msg", on ? "Calendar-wide reminder saved" : "Calendar-wide reminder turned off");
+  back("/calendars", "msg", on ? "Reminder for every event saved" : "Reminder for every event turned off");
 }
 
 export async function deleteCalendar(calendarId: number) {
   const db = getDb();
   const cal = db.select().from(calendars).where(eq(calendars.id, calendarId)).get();
   const localCount = db.select().from(calendars).where(eq(calendars.kind, "local")).all().length;
-  if (cal?.kind === "local" && localCount <= 1) back("/calendars", "error", "Keep at least one personal calendar");
+  if (cal?.kind === "local" && localCount <= 1) back("/calendars", "error", "You need at least one personal calendar, so this one can't be deleted.");
   db.delete(calendars).where(eq(calendars.id, calendarId)).run();
   revalidatePath("/");
   back("/calendars", "msg", `Deleted "${cal?.name ?? "calendar"}"`);
@@ -244,9 +244,9 @@ export async function deleteCalendar(calendarId: number) {
 export async function sendTestNotification(channel: Channel) {
   if (!CHANNELS.includes(channel)) back("/settings", "error", "Unknown channel");
   try {
-    await send(channel, { title: "⏰ Chronolab test", body: "If you can read this, reminders will reach you here." });
+    await send(channel, { title: "Chronolab test message", body: "Reminders will reach you here." });
   } catch (err) {
-    back("/settings", "error", `Test ${channel} failed: ${errorMessage(err)}`);
+    back("/settings", "error", `Test message failed: ${errorMessage(err)}`);
   }
-  back("/settings", "msg", `Test ${channel} sent`);
+  back("/settings", "msg", "Test message sent");
 }
