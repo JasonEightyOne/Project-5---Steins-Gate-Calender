@@ -1,195 +1,221 @@
 @import "tailwindcss";
 
 /*
- * Chronolab — "engineer's logbook" design (see docs/design-plan.md).
- * Paper and ink everywhere; only the walnut instrument strip glows.
- * Red = public holiday. Blue = your own days. Nothing is coloured for decoration.
+ * Chronolab — modern and clean (see docs/design-plan.md).
+ * Palette from the Malaysian flag and printed-calendar convention:
+ * red = a day off (public holidays, Sundays), blue = your own days, amber = now.
+ * The only glowing element is today's nixie tube in the month grid.
  */
 :root {
-  color-scheme: light;
-  --pad: #e6ecd6;
-  --pad-raised: #eef2e2;
-  --grid: #c3cea9;
-  --grid-fine: rgba(120, 140, 90, 0.16);
-  --ink: #1c2230;
-  --pencil: #565d4c;
-  --faint: #646b5a;
-  --holiday: #b3242e;
-  --own: #244f8f;
-  --walnut: #1a140f;
-  --walnut-edge: #3a2d20;
-  --housing-text: #cdbfa8;
+  color-scheme: light dark;
+  --page: #fbfbf9;
+  --raised: #ffffff;
+  --ink: #15171c;
+  --muted: #62666f;
+  --rule: #e5e6ea;
+  --field-border: #c9ccd3;
+  --off: #cc0001;
+  --own: #1b2a8f;
+  --own-ink: #ffffff;
+  --own-tint: rgba(27, 42, 143, 0.07);
   --nixie: #ff9a3c;
   --nixie-core: #ffe2bd;
   --nixie-glow: rgba(255, 122, 26, 0.6);
-  --font-ui: "B612", system-ui, sans-serif;
+  --font-ui: "Schibsted Grotesk Variable", system-ui, sans-serif;
   --font-readout: "B612 Mono", ui-monospace, monospace;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #0e1525;
+    --raised: #141d31;
+    --ink: #e7eaf1;
+    --muted: #9aa3b5;
+    --rule: #222c42;
+    --field-border: #34405c;
+    --off: #ff7a7a;
+    --own: #9db0ff;
+    --own-ink: #0e1525;
+    --own-tint: rgba(157, 176, 255, 0.1);
+  }
+}
+
 @theme inline {
-  --color-pad: var(--pad);
-  --color-pad-raised: var(--pad-raised);
-  --color-grid: var(--grid);
+  --color-page: var(--page);
   --color-ink: var(--ink);
-  --color-pencil: var(--pencil);
-  --color-faint: var(--faint);
-  --color-holiday: var(--holiday);
+  --color-muted: var(--muted);
+  --color-rule: var(--rule);
+  --color-off: var(--off);
   --color-own: var(--own);
-  --color-walnut: var(--walnut);
-  --color-housing: var(--housing-text);
-  --color-nixie: var(--nixie);
   --font-sans: var(--font-ui);
   --font-mono: var(--font-readout);
 }
 
-html { background: var(--pad); }
+html { background: var(--page); }
 
 body {
   min-height: 100vh;
+  background: var(--page);
   color: var(--ink);
   font-family: var(--font-ui);
   font-size: 1rem;
   line-height: 1.5;
-  /* 5 mm engineering grid */
-  background:
-    linear-gradient(var(--grid-fine) 1px, transparent 1px) 0 0 / 20px 20px,
-    linear-gradient(90deg, var(--grid-fine) 1px, transparent 1px) 0 0 / 20px 20px,
-    var(--pad);
 }
+
+/* Tabular figures only where numbers line up (this face makes punctuation tabular too). */
+.tnum { font-variant-numeric: tabular-nums; }
 
 /* ---------- Type scale (≈1.25) ---------- */
 .t-small { font-size: 0.8rem; line-height: 1.4; }
-.t-h3 { font-size: 1.25rem; line-height: 1.3; font-weight: 700; }
-.t-h2 { font-size: 1.56rem; line-height: 1.2; font-weight: 700; }
-.t-h1 { font-size: clamp(1.8rem, 6vw, 2.44rem); line-height: 1.05; font-weight: 700; letter-spacing: -0.01em; }
+.t-h3 { font-size: 1.25rem; line-height: 1.3; font-weight: 600; letter-spacing: -0.005em; }
+.t-h2 { font-size: 1.56rem; line-height: 1.2; font-weight: 600; letter-spacing: -0.01em; }
+.t-h1 { font-size: clamp(2rem, 6vw, 3rem); line-height: 1.02; font-weight: 600; letter-spacing: -0.025em; }
 
-.readable { max-width: 70ch; }
+.readable { max-width: 68ch; }
 
-/* ---------- Instrument housing: the only thing that glows ---------- */
-.housing {
-  background:
-    radial-gradient(ellipse at 30% 0%, rgba(255, 150, 60, 0.12), transparent 60%),
-    linear-gradient(180deg, #221a13, var(--walnut));
-  border-bottom: 3px solid var(--walnut-edge);
-  color: var(--housing-text);
+/* ---------- Header ---------- */
+.site-header { border-bottom: 1px solid var(--rule); }
+@media (max-width: 420px) { .site-header .nixie-row { font-size: 0.8rem !important; } }
+.site-header a { color: var(--muted); text-decoration: none; }
+.site-header a:hover { color: var(--ink); }
+.site-header a[aria-current="page"] { color: var(--ink); font-weight: 600; }
+.site-header .wordmark { color: var(--ink); font-weight: 700; letter-spacing: -0.01em; }
+
+/* ---------- World line: the year as one line; today glows ---------- */
+.worldline { padding-top: 0.2rem; padding-bottom: 0.9rem; }
+.worldline-track { position: relative; height: 1.6rem; }
+.worldline-track::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0.35rem; height: 1px;
+  background: linear-gradient(90deg, var(--rule), color-mix(in srgb, var(--muted) 55%, transparent), var(--rule));
 }
-.housing a { color: var(--housing-text); }
-.housing a:hover, .housing a[aria-current="page"] { color: var(--nixie-core); }
-.housing a[aria-current="page"] { text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 1px; }
+.worldline-month {
+  position: absolute; top: 0.35rem; padding-top: 0.4rem; padding-left: 3px;
+  border-left: 1px solid color-mix(in srgb, var(--muted) 45%, transparent);
+  font-size: 0.7rem; line-height: 1; color: var(--muted) !important;
+}
+.worldline-month:hover { color: var(--ink) !important; }
+.worldline-holiday { position: absolute; top: calc(0.35rem - 4px); width: 2px; height: 9px; margin-left: -1px; border-radius: 1px; background: var(--off); }
+.worldline-now {
+  position: absolute; top: calc(0.35rem - 5px); width: 11px; height: 11px; margin-left: -5.5px; border-radius: 50%;
+  background: var(--nixie-core);
+  box-shadow: 0 0 0 2px rgba(255, 154, 60, 0.35), 0 0 10px var(--nixie), 0 0 22px var(--nixie-glow);
+}
 
-.nixie-row { display: inline-flex; gap: 0.12em; align-items: flex-end; font-family: var(--font-readout); }
+/* ---------- "Time leap": the month title flickers once when you jump months ---------- */
+.leap { animation: leap 0.5s steps(5, end) 1 both; }
+@keyframes leap {
+  0% { opacity: 0.2; transform: translateX(-3px); text-shadow: 3px 0 var(--off), -3px 0 var(--own); }
+  40% { opacity: 1; transform: translateX(2px); text-shadow: -2px 0 var(--off), 2px 0 var(--own); }
+  70% { transform: translateX(-1px); text-shadow: 1px 0 var(--off), -1px 0 var(--own); }
+  100% { opacity: 1; transform: none; text-shadow: none; }
+}
+
+/* ---------- Nixie tubes: the header readout and today's date ---------- */
+.nixie-row { display: inline-flex; gap: 0.1em; align-items: flex-end; font-family: var(--font-readout); }
 .nixie-tube {
   display: inline-grid;
   place-items: center;
   width: 0.98em;
-  height: 1.5em;
-  border-radius: 0.48em 0.48em 0.14em 0.14em;
+  height: 1.45em;
+  border-radius: 0.46em 0.46em 0.14em 0.14em;
   background:
-    radial-gradient(circle at 50% 28%, rgba(255, 255, 255, 0.06), transparent 60%),
-    repeating-linear-gradient(60deg, rgba(255, 170, 90, 0.06) 0 1px, transparent 1px 4px),
-    repeating-linear-gradient(-60deg, rgba(255, 170, 90, 0.06) 0 1px, transparent 1px 4px),
-    linear-gradient(180deg, #19120d, #070504);
+    radial-gradient(circle at 50% 28%, rgba(255, 255, 255, 0.07), transparent 60%),
+    repeating-linear-gradient(60deg, rgba(255, 170, 90, 0.07) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(-60deg, rgba(255, 170, 90, 0.07) 0 1px, transparent 1px 4px),
+    linear-gradient(180deg, #1c140e, #080505);
   border: 1px solid #45331f;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.9);
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9), 0 2px 10px rgba(255, 122, 26, 0.18);
   color: var(--nixie-core);
-  text-shadow: 0 0 2px #fff4e3, 0 0 6px var(--nixie), 0 0 14px var(--nixie-glow), 0 0 28px var(--nixie-glow);
+  text-shadow: 0 0 2px #fff4e3, 0 0 6px var(--nixie), 0 0 12px var(--nixie-glow), 0 0 22px var(--nixie-glow);
   line-height: 1;
-  /* The single orchestrated moment: tubes ignite left to right on page load. */
   animation: ignite 0.4s steps(1, end) both;
-  animation-delay: calc(var(--i, 0) * 45ms);
+  animation-delay: calc(var(--i, 0) * 60ms + 150ms);
 }
 .nixie-tube.dot { width: 0.4em; background: none; border: none; box-shadow: none; }
 
 @keyframes ignite {
-  0% { color: rgba(255, 154, 60, 0.1); text-shadow: none; }
+  0% { color: rgba(255, 154, 60, 0.12); text-shadow: none; }
   40% { color: var(--nixie-core); text-shadow: 0 0 6px var(--nixie); }
   55% { color: rgba(255, 154, 60, 0.3); text-shadow: none; }
   100% { color: var(--nixie-core); }
 }
 
-/* ---------- Paper controls ---------- */
+/* ---------- Controls ---------- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center;
-  min-height: 2.5rem; padding: 0.4rem 0.9rem;
-  border: 1.5px solid var(--ink); border-radius: 3px;
+  min-height: 2.5rem; padding: 0.4rem 0.95rem;
+  border: 1px solid var(--field-border); border-radius: 8px;
   background: transparent; color: var(--ink);
-  font: inherit; font-size: 0.9rem; cursor: pointer;
+  font: inherit; font-size: 0.92rem; font-weight: 500; cursor: pointer; text-decoration: none;
 }
-.btn:hover { background: rgba(28, 34, 48, 0.07); }
-.btn-ink { background: var(--ink); color: var(--pad); }
-.btn-ink:hover { background: #2c3446; }
-.btn-quiet { border-color: transparent; text-decoration: underline; text-underline-offset: 3px; padding-inline: 0.4rem; }
-.btn-quiet:hover { background: none; color: var(--own); }
-.btn-danger { border-color: var(--holiday); color: var(--holiday); }
-.btn-danger:hover { background: rgba(179, 36, 46, 0.08); }
+.btn:hover { border-color: var(--ink); }
+.btn-primary { background: var(--own); border-color: var(--own); color: var(--own-ink); }
+.btn-primary:hover { border-color: var(--own); filter: brightness(1.12); }
+.btn-quiet { border-color: transparent; color: var(--muted); padding-inline: 0.5rem; }
+.btn-quiet:hover { border-color: transparent; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.btn-danger { color: var(--off); border-color: color-mix(in srgb, var(--off) 45%, transparent); }
+.btn-danger:hover { border-color: var(--off); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .field {
-  width: 100%; min-height: 2.5rem; padding: 0.45rem 0.6rem;
-  background: var(--pad-raised); color: var(--ink);
-  border: 1px solid #9faa86; border-radius: 3px;
+  width: 100%; min-height: 2.6rem; padding: 0.5rem 0.7rem;
+  background: var(--raised); color: var(--ink);
+  border: 1px solid var(--field-border); border-radius: 8px;
   font: inherit; font-size: 0.95rem;
 }
-.field:hover { border-color: var(--pencil); }
-.field::file-selector-button { margin-right: 0.6rem; padding: 0.3rem 0.6rem; border: 1.5px solid var(--ink); border-radius: 3px; background: transparent; color: var(--ink); font: inherit; }
-
-.field-label { display: block; margin-bottom: 0.3rem; font-size: 0.85rem; color: var(--pencil); }
+.field:hover { border-color: var(--muted); }
+.field::file-selector-button { margin-right: 0.6rem; padding: 0.3rem 0.7rem; border: 1px solid var(--field-border); border-radius: 6px; background: transparent; color: var(--ink); font: inherit; }
+.field-label { display: block; margin-bottom: 0.35rem; font-size: 0.85rem; font-weight: 500; color: var(--muted); }
 
 a { color: var(--own); text-underline-offset: 3px; }
-:focus-visible { outline: 2.5px solid var(--own); outline-offset: 2px; }
-.housing :focus-visible { outline-color: var(--nixie); }
+:focus-visible { outline: 2px solid var(--own); outline-offset: 2px; border-radius: 4px; }
 
-/* Section rule: a pencil line across the page, used to separate form sections */
-.rule { border-top: 1.5px solid var(--grid); }
+/* Section separation: one rule, no boxes */
+.rule { border-top: 1px solid var(--rule); }
 
-/* ---------- Month grid ---------- */
-.month { border-top: 1.5px solid var(--ink); border-left: 1px solid var(--grid); }
-.month > * { border-right: 1px solid var(--grid); border-bottom: 1px solid var(--grid); }
-.day-cell { min-height: 6.75rem; background: rgba(238, 242, 226, 0.55); }
-.day-cell.outside { background: transparent; }
-.day-cell.outside .day-num { color: var(--faint); }
+/* ---------- Month grid: no cell borders, one rule per week ---------- */
+.week { border-top: 1px solid var(--rule); }
+.day-cell { min-height: 6.5rem; padding: 0.55rem 0.4rem 0.4rem; min-width: 0; }
 .day-num {
-  display: inline-grid; place-items: center;
-  min-width: 1.9rem; height: 1.9rem; padding: 0 0.2rem;
-  color: var(--ink); text-decoration: none; font-size: 0.95rem;
+  display: inline-flex; align-items: center; min-height: 1.9rem;
+  color: var(--ink); text-decoration: none; font-size: 1.05rem; font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 .day-num:hover { color: var(--own); text-decoration: underline; }
-.day-cell.holiday .day-num { color: var(--holiday); font-weight: 700; }
-/* Today: circled by pen */
-.day-cell.today .day-num {
-  border: 2px solid var(--own);
-  border-radius: 50% 48% 52% 46% / 46% 52% 48% 54%;
-  transform: rotate(-4deg);
-}
+.day-cell.sunday .day-num, .day-cell.holiday .day-num { color: var(--off); }
+.day-cell.holiday .day-num { font-weight: 700; }
+.day-cell.outside .day-num { color: var(--muted); font-weight: 400; }
+.day-cell.today .day-num { font-size: 1.15rem; text-decoration: none; }
 
 .entry {
-  display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
-  font-size: 0.75rem; line-height: 1.35; padding: 1px 2px 1px 7px;
-  color: color-mix(in srgb, var(--entry, var(--own)) 70%, var(--ink));
-  text-decoration: none; position: relative;
+  display: flex; align-items: baseline; gap: 0.4rem; min-width: 0;
+  font-size: 0.78rem; line-height: 1.35; padding: 1px 0;
+  color: var(--ink); text-decoration: none;
 }
 .entry::before {
-  content: ""; position: absolute; left: 1px; top: 0.45em; width: 3px; height: 0.65em;
-  background: var(--entry, var(--own)); border-radius: 1px;
+  content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--entry, var(--own)); transform: translateY(-1px);
 }
-.entry.is-holiday { color: var(--holiday); font-weight: 700; }
-.entry.is-holiday::before { background: var(--holiday); }
-.entry:hover { text-decoration: underline; }
+.entry span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.entry.is-own::before { background: var(--own); }
+.entry.is-holiday { color: var(--off); font-weight: 600; }
+.entry.is-holiday::before { background: var(--off); }
+.entry:hover span { text-decoration: underline; }
 
-/* ---------- Notebook margin list ---------- */
-.margin-list > li { display: grid; grid-template-columns: 4.6rem 1fr; }
-.margin-list .when { padding-right: 0.6rem; border-right: 1.5px solid rgba(179, 36, 46, 0.55); text-align: right; font-size: 0.8rem; color: var(--pencil); }
-.margin-list .what { padding-left: 0.7rem; min-width: 0; }
+/* ---------- Up next ---------- */
+.next-list > li { display: grid; grid-template-columns: 4.2rem 1fr auto; gap: 0.75rem; align-items: baseline; padding: 0.55rem 0; border-top: 1px solid var(--rule); }
+.next-list > li:first-child { border-top: 0; }
 
 @media (max-width: 639px) {
-  .day-cell { min-height: 3.75rem; }
-  .day-num { min-width: 1.6rem; height: 1.6rem; font-size: 0.85rem; }
-  /* Phones: entries collapse to ink marks; "Coming up" carries the detail. */
-  .entry { height: 4px; padding: 0; margin: 2px 3px; font-size: 0; color: transparent; background: var(--entry, var(--own)); border-radius: 1px; }
-  .entry::before { display: none; }
-  .entry.is-holiday { background: var(--holiday); }
+  .day-cell { min-height: 3.9rem; padding: 0.4rem 0.15rem; }
+  .day-num { font-size: 0.95rem; min-height: 1.6rem; }
+  .day-cell .nixie-row { font-size: 0.95rem !important; }
+  /* Phones: entries collapse to dots; "Up next" carries the detail. */
+  .entries { display: flex; flex-wrap: wrap; gap: 3px; padding-top: 2px; }
+  .entry { font-size: 0; padding: 0; gap: 0; }
+  .entry span { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .nixie-tube { animation: none; }
+  .nixie-tube, .leap { animation: none; }
 }

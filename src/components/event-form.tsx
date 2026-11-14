@@ -58,7 +58,7 @@ export function EventForm({ action, calendars, event, defaultDate, submitLabel }
         </fieldset>
       )}
       <div className="sm:col-span-2">
-        <button className="btn btn-ink" type="submit">{submitLabel}</button>
+        <button className="btn btn-primary" type="submit">{submitLabel}</button>
       </div>
     </form>
   );

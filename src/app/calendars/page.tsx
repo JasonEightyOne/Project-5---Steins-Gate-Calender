@@ -32,7 +32,7 @@ export default async function CalendarsPage({ searchParams }: { searchParams: Pr
   return (
     <div className="readable">
       <h1 className="t-h1 mb-2">Calendars</h1>
-      <p className="mb-8 text-pencil">Your own days, plus public holidays and other calendars you bring in.</p>
+      <p className="mb-8 text-muted">Your own days, plus public holidays and other calendars you bring in.</p>
       <Flash msg={sp.msg} error={sp.error} />
 
       <ul>
@@ -40,16 +40,16 @@ export default async function CalendarsPage({ searchParams }: { searchParams: Pr
           <li key={c.id} className="rule py-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
-                <h2 className="t-h3" style={{ color: c.isHoliday ? "var(--holiday)" : "var(--ink)" }}>
+                <h2 className="t-h3" style={{ color: c.isHoliday ? "var(--off)" : "var(--ink)" }}>
                   {c.name}
-                  {!c.visible && <span className="t-small ml-2 font-normal text-pencil">(hidden)</span>}
+                  {!c.visible && <span className="t-small ml-2 font-normal text-muted">(hidden)</span>}
                 </h2>
-                <p className="t-small text-pencil">
+                <p className="t-small text-muted">
                   {KIND[c.kind]}, {counts.get(c.id) ?? 0} events.
                   {c.lastSyncedAt && ` Last updated ${fmt(c.lastSyncedAt)}.`}
                 </p>
-                {c.sourceUrl && <p className="t-small truncate text-pencil" title={c.sourceUrl}>{c.sourceUrl}</p>}
-                {c.lastSyncError && <p className="t-small mt-1 text-holiday">Last update failed: {c.lastSyncError}</p>}
+                {c.sourceUrl && <p className="t-small truncate text-muted" title={c.sourceUrl}>{c.sourceUrl}</p>}
+                {c.lastSyncError && <p className="t-small mt-1 text-off">Last update failed: {c.lastSyncError}</p>}
               </div>
               <div className="flex flex-wrap gap-1">
                 {c.kind === "ics_url" && (
@@ -86,9 +86,9 @@ export default async function CalendarsPage({ searchParams }: { searchParams: Pr
             <input type="hidden" name="url" value={p.url} />
             <input type="hidden" name="color" value={p.color} />
             <input type="hidden" name="isHoliday" value="on" />
-            <h3 className="t-h3 text-holiday">{p.name}</h3>
-            <p className="mb-3 text-[0.9rem] text-pencil">{p.note}</p>
-            <button className="btn btn-ink" type="submit" disabled={subscribed.has(p.url)}>
+            <h3 className="t-h3 text-off">{p.name}</h3>
+            <p className="mb-3 text-[0.9rem] text-muted">{p.note}</p>
+            <button className="btn btn-primary" type="submit" disabled={subscribed.has(p.url)}>
               {subscribed.has(p.url) ? "Already added" : "Add Malaysia public holidays"}
             </button>
           </form>
@@ -96,7 +96,7 @@ export default async function CalendarsPage({ searchParams }: { searchParams: Pr
 
         <form action={subscribeCalendar} className="mb-10 grid gap-3">
           <h3 className="t-h3">Subscribe by link</h3>
-          <p className="-mt-2 text-[0.9rem] text-pencil">Paste a calendar link ending in .ics, or a webcal:// link. It updates every night.</p>
+          <p className="-mt-2 text-[0.9rem] text-muted">Paste a calendar link ending in .ics, or a webcal:// link. It updates every night.</p>
           <label><span className="field-label">Name</span><input name="name" required className="field" placeholder="Selangor school terms" /></label>
           <label><span className="field-label">Link</span><input name="url" required className="field" placeholder="https://example.com/calendar.ics" /></label>
           <div className="flex flex-wrap items-center gap-4">
@@ -108,7 +108,7 @@ export default async function CalendarsPage({ searchParams }: { searchParams: Pr
 
         <form action={uploadIcs} className="mb-10 grid gap-3">
           <h3 className="t-h3">Import a file</h3>
-          <p className="-mt-2 text-[0.9rem] text-pencil">Importing the same file again updates its events and keeps your reminders.</p>
+          <p className="-mt-2 text-[0.9rem] text-muted">Importing the same file again updates its events and keeps your reminders.</p>
           <label><span className="field-label">.ics file</span><input type="file" name="file" accept=".ics,text/calendar" required className="field" /></label>
           <label>
             <span className="field-label">Import into</span>

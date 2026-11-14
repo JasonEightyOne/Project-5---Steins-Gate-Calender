@@ -47,12 +47,12 @@ export default async function EventPage({ params, searchParams }: Props) {
       <Link href={`/?m=${event.startDate.slice(0, 7)}`} className="t-small">Back to {MONTH_NAMES[m - 1]} {y}</Link>
       <div className="mt-4"><Flash msg={sp.msg} error={sp.error} /></div>
 
-      <p className="t-small text-pencil">{calendar.isHoliday ? `Public holiday, from ${calendar.name}` : calendar.name}</p>
-      <h1 className="t-h1 mt-1" style={{ color: calendar.isHoliday ? "var(--holiday)" : "var(--ink)" }}>{event.title}</h1>
+      <p className="t-small text-muted">{calendar.isHoliday ? `Public holiday, from ${calendar.name}` : calendar.name}</p>
+      <h1 className="t-h1 mt-1" style={{ color: calendar.isHoliday ? "var(--off)" : "var(--ink)" }}>{event.title}</h1>
       <p className="mt-2">{capitalize(when)}</p>
-      {event.description && <p className="mt-3 whitespace-pre-line text-pencil">{event.description}</p>}
+      {event.description && <p className="mt-3 whitespace-pre-line text-muted">{event.description}</p>}
       {!editable && (
-        <p className="t-small mt-3 text-pencil">
+        <p className="t-small mt-3 text-muted">
           This comes from an imported calendar, so its details update when that calendar syncs. You can still set reminders for it.
         </p>
       )}
@@ -71,7 +71,7 @@ export default async function EventPage({ params, searchParams }: Props) {
                 <span>
                   {capitalize(describeOffset(r.minutesBefore))}, {CHANNEL_LABELS[r.channel]}
                   {!status[r.channel].configured && (
-                    <span className="t-small ml-2 text-holiday">Won&apos;t send until this is set up in <Link href="/settings">Alerts</Link></span>
+                    <span className="t-small ml-2 text-off">Won&apos;t send until this is set up in <Link href="/settings">Alerts</Link></span>
                   )}
                 </span>
                 <form action={deleteReminder.bind(null, r.id, event.id)}>
@@ -81,14 +81,14 @@ export default async function EventPage({ params, searchParams }: Props) {
             ))}
           </ul>
         ) : (
-          calendar.defaultReminderMinutes == null && <p className="mb-4 text-pencil">No reminders yet. Add one below.</p>
+          calendar.defaultReminderMinutes == null && <p className="mb-4 text-muted">No reminders yet. Add one below.</p>
         )}
         <form action={addReminder.bind(null, event.id)} className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
           <OffsetSelect name="minutesBefore" />
           <ChannelSelect name="channel" />
-          <button className="btn btn-ink" type="submit">Add reminder</button>
+          <button className="btn btn-primary" type="submit">Add reminder</button>
         </form>
-        <p className="t-small mt-2 text-pencil">All-day reminders arrive at {ALL_DAY_TIME}.</p>
+        <p className="t-small mt-2 text-muted">All-day reminders arrive at {ALL_DAY_TIME}.</p>
       </section>
 
       {editable && (

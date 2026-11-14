@@ -1,75 +1,80 @@
 # Chronolab design plan
 
-Made with the `frontend-design` skill (`.claude/skills/frontend-design/`), following its process: plan, review against the brief, build, critique.
+Made with the `frontend-design` skill (`.claude/skills/frontend-design/`): plan, review against the brief, build, critique.
 
-## Brief
-- **Subject:** a personal calendar for one person in Malaysia. It shows imported public holidays, their own marked days, and reminders.
-- **Mood:** in the spirit of a time-travel sci-fi anime's home-built lab. **Original only:** no characters, logos, art, quotes or names from any existing work.
+## Brief (current)
+- **Subject:** a personal calendar for one person in Malaysia. It shows public holidays, their own marked days, and reminders.
 - **Primary job:** see what's coming and mark days quickly.
+- **Requested:** modern and clean, then "still with the modern Steins;Gate theme". Our reading: a modern **time-travel lab** feel, built only from original, generic elements: nixie tubes, a world line, a time-leap flicker. It follows the device's light or dark mode and applies to the whole app.
+- **Original only:** no characters, logos, art, quotes or names from any existing work.
 
-## Pass 1: first draft
-Keep the existing look: a near-black screen, green CRT text, amber nixie tubes, scanlines, monospace everywhere, rounded panels.
+## Colour
+The palette comes from the Malaysian flag. It also matches how printed Malaysian calendars mark days off in red.
 
-## Review against the brief
-Checking the draft against the skill's list of generic defaults:
-- **Near-black with a single acid-green accent** is listed default #2, and our green #7dffa8 is exactly that. Nothing in the brief asks for green, so this is a default, not a choice. **Revised.**
-- **All-caps labels, monospace data labels, middle-dot meta strings, identical rounded cards** are listed defaults #4 and #5. **Revised.**
-- **What the brief does pin down:** a retro sci-fi lab. The real objects in that world are an engineer's notebook on green graph paper, ink and red pencil, and a single instrument with glowing nixie tubes. A Malaysian printed calendar marks public holidays in red. These details are specific to this brief, so they become the design.
+| Name | Light | Dark | Role |
+|---|---|---|---|
+| Page | `#FBFBF9` | `#0E1525` (night navy) | Background |
+| Ink | `#15171C` | `#E7EAF1` | Text |
+| Muted | `#62666F` | `#9AA3B5` | Secondary text, weekday names, other-month dates |
+| Rule | `#E5E6EA` | `#222C42` | One line between week rows and between sections |
+| Day off | `#CC0001` | `#FF7A7A` | Public holidays and Sunday numbers |
+| Yours | `#1B2A8F` | `#9DB0FF` | Your own days, primary buttons, links |
+| Now | nixie amber `#FF9A3C` | same | Only "now": the nixie readouts and the world-line marker |
 
-## Pass 2: revised plan
+All text pairs are at least 5.5:1 contrast in both modes.
 
-### Color
-| Name | Hex | Role |
-|---|---|---|
-| Computation pad | `#E6ECD6` | Page background: the pale green of an engineering pad |
-| Grid | `#C3CEA9` | Graph-paper rules and the calendar grid |
-| Ink | `#1C2230` | Body text and primary buttons |
-| Holiday red | `#B3242E` | **Only** public holidays, like a printed calendar. Also errors |
-| Fountain blue | `#244F8F` | Your own days, links, and the circle around today |
-| Walnut housing | `#1A140F` | Only the instrument strip that holds the nixie tubes |
+## Type
+- **Schibsted Grotesk** (variable) for everything.
+  - Month title: 600 weight at `clamp(2rem, 6vw, 3rem)`, letter-spacing −0.025em, one colour.
+  - Date numbers: 500 weight with tabular figures. Use tabular figures only on date numbers, because this face makes punctuation tabular too.
+- **B612 Mono** only inside the nixie tube.
+- Type scale is about 1.25: 0.8 / 1 / 1.25 / 1.56 / 3rem. Sentence case.
 
-Nixie glow stays amber (`#FF9A3C`) and appears **only** inside the walnut housing.
-
-### Type
-- **B612:** all interface text. It was designed for aircraft cockpit displays, which is instrument vernacular, not a default web font.
-- **B612 Mono:** only the nixie digits, as a glowing readout.
-
-Type scale (ratio about 1.25): 0.8 / 1 / 1.25 / 1.56 / 2.44 rem.
-- The month name is the big type moment: 2.44rem, bold, in ink, no second colour.
-- Labels are sentence case. No tracking, no all-caps.
-
-### Layout
-Everything is left-aligned, like writing on a pad.
+## Layout
+Everything is left-aligned, with generous white space.
 
 ```
-┌─ walnut housing ─────────────────────────────────────────────┐
-│ Chronolab                        Calendar  Calendars  Alerts │
-│ [2][0][2][6].[1][1].[1][0]     [1][7] days until Deepavali   │
-└──────────────────────────────────────────────────────────────┘
-  graph paper page
-  November 2026                        ‹  Today  ›  Mark a day
-  ┌──┬──┬──┬──┬──┬──┬──┐   Coming up
-  │ 1│ 2│ 3│ 4│ 5│ 6│ 7│   │ 9 Nov   Worker test
-  │  │(9)  ← today circled │20 Nov   Deepavali (red)
-  │  │ red holiday text    │25 Nov   Lab anniversary (blue)
-  └──┴──┴──┴──┴──┴──┴──┘   ↑ red margin rule, as on a pad
+Chronolab                                Calendar  Calendars  Alerts
+
+November 2026                 ‹  Today  ›            [ Mark a day ]
+Sun   Mon   Tue   Wed   Thu   Fri   Sat         Up next
+ 1     2     3     4     5     6     7          Deepavali (red)
+─────────────────────────────────────────       Public holiday in 6 days
+ 8     9    10    11    12    13   [1][4]       Fri, 20 November 2026
+                                                16 Nov  Dentist     10:30
 ```
 
-- The month grid sits directly on the graph paper, ruled in the grid colour, with no card around it.
-- The "Coming up" list uses the notebook's red margin line to separate dates from titles. The line separates information, so it isn't decoration.
-- Forms are single columns on the paper, with section headings in place of boxes.
+- The month grid has no cell borders: one faint rule per week, and only the weeks the month needs (4 to 6).
+- Events are short lines with a 6px dot: red for holidays, navy for yours, the calendar's own colour for others.
+- Phones: event lines become dots, and "Up next" moves below the grid.
+- Other pages are single-column forms. Sections are separated by a heading and one rule, with no boxes. Inputs and buttons have an 8px radius; layout has none.
 
-### Principles
-1. **Only the instrument glows.** The nixie readout is the one bold, memorable element: tubes light one after another once per page load, then hold steady. Everything else is quiet paper and ink.
-2. **Colour is meaning.** Red is a public holiday. Blue is your own day. Nothing is coloured for decoration.
-3. **Mark the paper the way a person would.** Today gets a pen circle, holidays get red, and there are no badges or pills.
-4. **Plain words.** Write "Today", "Mark a day", "Coming up". Drop clever copy such as "Current coordinate" and "world line stable".
-5. **Quality floor:**
-   - works down to 360px wide
-   - visible focus rings
-   - `prefers-reduced-motion` turns off the ignition animation
-   - text contrast at least 4.5:1 on the pad colour
+## Time-lab touches
+- **Nixie readout** in the header: today's date (YYYY.MM.DD) as glowing tubes, like a lab meter. Today's cell in the month grid is also a nixie tube.
+- **World line** under the header: the year as one thin line.
+  - Month ticks are links that jump to that month.
+  - Public holidays are red ticks.
+  - Today is a glowing amber marker.
+  - It carries real information (where you are in the year, and when holidays fall), so it is structure, not decoration.
+- **Time leap:** the month title flickers once, in red and navy, when you jump to another month. This motion answers your action, and it's off with reduced motion.
 
-## Notes for future passes
-- Tried and rejected: CRT green on black, which is a generic default.
-- Still to explore: a dark "night shift" variant of the pad, and a tube-warming sound when you mark a day (opt-in only).
+## Principles
+1. **Amber means now:** only the nixie readouts and the world-line marker glow. They light once on load, with no motion when reduced motion is on.
+2. **Colour is meaning:** red is a day off, navy is yours, amber is now.
+3. **Structure without boxes:** white space and single rules.
+4. **Plain words:** "Mark a day", "Save day", "Add reminder". Confirmation messages match their buttons.
+
+## Review against the skill's generic defaults
+- "Modern and clean" normally becomes the SaaS card kit: Inter, white, one generic blue, rounded cards with soft shadows. **Instead:** no cards, Schibsted Grotesk, and accents taken from the flag and the printed-calendar convention.
+- A near-black dark mode is a default. **Instead:** night navy.
+- The earlier design put the nixie in a big hero readout (the "big number + small label" default). **Instead:** the nixie *is* today's cell, and the holiday countdown is plain text in "Up next".
+
+## Critique notes (this pass)
+- Fixed: tabular figures on body text widened colons and full stops. They're now limited to date numbers.
+- Removed one accessory: the sixth week row of next-month dates, plus the colour legend line.
+- Shortened "Public holiday in 6 days, Fri, 20 November 2026" to two lines.
+
+## Previous direction: engineer's logbook (Nov 2026)
+- Green graph-paper page, ink and red pencil, B612, and a walnut instrument strip with nixie tubes on every page.
+- Replaced because the user asked for modern and clean.
+- What carried over: the red/blue meaning, plain copy, and the nixie as the single glowing element.
