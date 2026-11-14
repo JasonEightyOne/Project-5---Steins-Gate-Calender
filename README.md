@@ -1,6 +1,6 @@
 # Chronolab Calendar
 
-A personal calendar designed like an engineer's logbook: green graph paper, ink and red pencil, with a strip of glowing nixie tubes showing today's date and the days until the next holiday. See `docs/design-plan.md`.
+A clean, modern personal calendar for Malaysia. Public holidays and Sundays are in red and your own days in navy; today's date glows in nixie tubes, and a "world line" across the top shows the year at a glance. It follows your device's light or dark mode. See `docs/design-plan.md`.
 
 - **Import calendars:** subscribe to any `.ics` URL (one click for Malaysia public holidays) or upload an `.ics` file. Re-imports update existing events by UID and keep their reminders.
 - **Mark your own days:** one-off, multi-day, timed, or repeating every year (birthdays, anniversaries).

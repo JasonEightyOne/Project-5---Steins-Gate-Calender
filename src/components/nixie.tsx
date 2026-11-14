@@ -1,7 +1,11 @@
-/** Renders text as a row of nixie tubes. "." becomes a narrow dot. Tubes ignite left to right once on load. */
-export function Nixie({ value, size = "clamp(1.25rem, 5.6vw, 2.1rem)", label }: { value: string; size?: string; label: string }) {
+/**
+ * Renders text as a row of nixie tubes ("." becomes a narrow dot). Tubes ignite once on load.
+ * Pass an empty `label` when the surrounding element already describes the value.
+ */
+export function Nixie({ value, size = "1.5rem", label }: { value: string; size?: string; label: string }) {
+  const a11y = label ? { role: "img", "aria-label": label } : { "aria-hidden": true };
   return (
-    <span className="nixie-row" style={{ fontSize: size }} role="img" aria-label={label}>
+    <span className="nixie-row" style={{ fontSize: size }} {...a11y}>
       {value.split("").map((ch, i) => (
         <span
           key={i}

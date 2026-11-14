@@ -1,7 +1,6 @@
 "use client";
 
-import "@fontsource/b612/400.css";
-import "@fontsource/b612/700.css";
+import "@fontsource-variable/schibsted-grotesk";
 import "./globals.css";
 import { ErrorNotice } from "@/components/error-notice";
 
@@ -10,8 +9,8 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
   return (
     <html lang="en">
       <body className="antialiased">
-        <header className="housing">
-          <div className="mx-auto max-w-6xl px-4 py-4 font-bold" style={{ color: "var(--nixie-core)" }}>Chronolab</div>
+        <header className="site-header">
+          <div className="mx-auto max-w-6xl px-4 py-4"><span className="wordmark text-[1.1rem]">Chronolab</span></div>
         </header>
         <main className="mx-auto max-w-6xl px-4 py-10">
           <ErrorNotice digest={error.digest} onRetry={reset} />

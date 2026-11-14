@@ -7,11 +7,11 @@ export function ErrorNotice({ digest, onRetry }: { digest?: string; onRetry: () 
         Usually this means the app can&apos;t reach its database. On Vercel, check that <code>TURSO_DATABASE_URL</code> and{" "}
         <code>TURSO_AUTH_TOKEN</code> are set in Settings, Environment Variables, then redeploy.
       </p>
-      <p className="mb-6 text-pencil">
+      <p className="mb-6 text-muted">
         Setup steps are in the README under &ldquo;Deploy on Vercel&rdquo;.
         {digest && <> To find the exact error, search the Vercel logs for <code>{digest}</code>.</>}
       </p>
-      <button type="button" className="btn btn-ink" onClick={onRetry}>
+      <button type="button" className="btn btn-primary" onClick={onRetry}>
         Try again
       </button>
     </div>

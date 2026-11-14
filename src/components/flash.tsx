@@ -5,7 +5,7 @@ export function Flash({ msg, error }: { msg?: string; error?: string }) {
     <p
       role={error ? "alert" : "status"}
       className="mb-6 border-l-[3px] py-1 pl-3"
-      style={{ borderColor: error ? "var(--holiday)" : "var(--own)", color: error ? "var(--holiday)" : "var(--ink)" }}
+      style={{ borderColor: error ? "var(--off)" : "var(--own)", color: error ? "var(--off)" : "var(--ink)" }}
     >
       {error ?? msg}
     </p>

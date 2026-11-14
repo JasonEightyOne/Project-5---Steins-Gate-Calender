@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import "@fontsource/b612/400.css";
-import "@fontsource/b612/700.css";
+import "@fontsource-variable/schibsted-grotesk";
 import "@fontsource/b612-mono/400.css";
 import "./globals.css";
-import { Instrument } from "@/components/instrument";
+import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
   title: "Chronolab Calendar",
@@ -16,9 +15,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body className="antialiased">
-        <Instrument />
-        <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
-        <footer className="mx-auto max-w-6xl px-4 pb-10 t-small text-pencil">Dates and reminder times are in Malaysia time.</footer>
+        <SiteHeader />
+        <main className="mx-auto max-w-6xl px-4 py-10">{children}</main>
+        <footer className="mx-auto max-w-6xl px-4 pb-10 t-small text-muted">Dates and reminder times are in Malaysia time.</footer>
       </body>
     </html>
   );
